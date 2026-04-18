@@ -23,6 +23,7 @@ def init_ee():
         env_key = os.environ.get("GEE_KEY_JSON")
         if env_key:
             key_dict = json.loads(env_key)
+            project_id = key_dict.get("project_id")
             credentials = Credentials.from_service_account_info(
                 key_dict, scopes=["https://www.googleapis.com/auth/earthengine"]
             )
@@ -33,13 +34,27 @@ def init_ee():
                 logger.error(f"GEE key file not found at {key_path} and GEE_KEY_JSON env var is missing.")
                 return False
                 
+            with open(key_path, 'r') as f:
+                key_dict = json.load(f)
+                project_id = key_dict.get("project_id")
+                
             credentials = Credentials.from_service_account_file(
                 key_path, scopes=["https://www.googleapis.com/auth/earthengine"]
             )
             logger.info("Using GEE credentials from file")
 
-        # Initialize
-        ee.Initialize(credentials, project="intricate-muse-493714-c8")
+        # Try initializing Earth Engine:
+        # 1. First try with project (requires Service Usage Consumer role)
+        # 2. Fallback to without project (uses service account's default project)
+        try:
+            ee.Initialize(credentials, project=project_id)
+            logger.info(f"Initialized Earth Engine with project={project_id}")
+        except Exception as proj_err:
+            logger.warning(f"EE init with project failed: {proj_err}")
+            logger.info("Retrying EE init without explicit project...")
+            ee.Initialize(credentials)
+            logger.info("Initialized Earth Engine without explicit project (using SA default)")
+
         _INITIALIZED = True
         logger.info("Successfully initialized Google Earth Engine")
         return True
@@ -66,8 +81,11 @@ def get_ndvi_thumbnail(polygon_coords: list) -> str:
         roi = ee.Geometry.Polygon([ee_coords])
 
         # Get Sentinel-2 Surface Reflectance data from the past month
-        end_date = ee.Date(ee.Date(ee.Date.now()).format('YYYY-MM-DD'))
-        start_date = end_date.advance(-30, 'day')
+        from datetime import datetime, timedelta
+        end_date_str = datetime.utcnow().strftime('%Y-%m-%d')
+        start_date_str = (datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%d')
+        end_date = ee.Date(end_date_str)
+        start_date = ee.Date(start_date_str)
 
         collection = (ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
                       .filterBounds(roi)
@@ -76,7 +94,8 @@ def get_ndvi_thumbnail(polygon_coords: list) -> str:
 
         # Fallback if no recent cloud-free images are available
         if collection.size().getInfo() == 0:
-            start_date = end_date.advance(-90, 'day')
+            start_date_str = (datetime.utcnow() - timedelta(days=90)).strftime('%Y-%m-%d')
+            start_date = ee.Date(start_date_str)
             collection = (ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
                           .filterBounds(roi)
                           .filterDate(start_date, end_date)

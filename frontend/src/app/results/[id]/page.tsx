@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import { getDetection, reanalyzeDetection, getDiseaseRisk } from "@/lib/api";
+import { useState, useEffect, use, useRef } from "react";
+import { getDetection, reanalyzeDetection, getDiseaseRisk, resultChat, getResultChatHistory } from "@/lib/api";
 import Link from "next/link";
+
+interface ChatMessage {
+  role: "user" | "ai";
+  text: string;
+}
 
 const UI_STRINGS: Record<string, any> = {
   en: {
@@ -66,6 +71,12 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
   const [weatherData, setWeatherData] = useState<any>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
 
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const savedLang = localStorage.getItem("leaf_scan_lang") || "en";
     setLang(savedLang);
@@ -81,6 +92,20 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
       })
       .catch(() => setData(null))
       .finally(() => setLoading(false));
+
+    // Load chat history
+    getResultChatHistory(id)
+      .then((res) => {
+        if (res.messages?.length) {
+          const msgs: ChatMessage[] = [];
+          res.messages.forEach((m: any) => {
+            msgs.push({ role: "user", text: m.question });
+            msgs.push({ role: "ai", text: m.answer });
+          });
+          setChatMessages(msgs);
+        }
+      })
+      .catch(() => {});
   }, [id]);
 
   useEffect(() => {
@@ -101,6 +126,26 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
       }
     }
   }, [data]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
+
+  const handleChatSend = async () => {
+    if (!chatInput.trim()) return;
+    const question = chatInput.trim();
+    setChatInput("");
+    setChatMessages((prev) => [...prev, { role: "user", text: question }]);
+    setChatLoading(true);
+    try {
+      const res = await resultChat(id, question, lang);
+      setChatMessages((prev) => [...prev, { role: "ai", text: res.answer }]);
+    } catch {
+      setChatMessages((prev) => [...prev, { role: "ai", text: "Sorry, I couldn't process your question. Please try again." }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
 
   const fetchWeather = async (lat: number, lon: number, disease: string) => {
     try {
@@ -371,6 +416,76 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
               </p>
            </div>
         </div>
+        {/* Chat Section */}
+        <div className="glass rounded-3xl overflow-hidden border-2 border-emerald-100 shadow-xl bg-white/80">
+          <div className="p-6 border-b border-emerald-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xl">💬</div>
+            <div>
+              <h3 className="text-xl font-black text-slate-900">Ask About This Disease</h3>
+              <p className="text-slate-500 text-sm font-medium">Get expert AI advice specific to your diagnosis</p>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-4 max-h-[400px] overflow-y-auto">
+            {chatMessages.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-4xl mb-3">🌿</p>
+                <p className="text-slate-400 font-medium">{lang === 'hi' ? 'इस रोग के बारे में कुछ भी पूछें — उपचार, रोकथाम, लागत...' : 'Ask anything about this disease — treatment dosage, prevention, cost...'}</p>
+              </div>
+            )}
+
+            {chatMessages.map((msg, i) => (
+              <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+                {msg.role === 'ai' && (
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 text-lg">🤖</div>
+                )}
+                <div className={`max-w-[80%] p-4 rounded-2xl text-sm font-medium leading-relaxed ${
+                  msg.role === 'user'
+                    ? 'bg-emerald-600 text-white rounded-tr-none'
+                    : 'bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200'
+                }`}>
+                  {msg.text}
+                </div>
+                {msg.role === 'user' && (
+                  <div className="w-9 h-9 rounded-xl bg-slate-800 text-white flex items-center justify-center flex-shrink-0 text-lg">🧑‍🌾</div>
+                )}
+              </div>
+            ))}
+
+            {chatLoading && (
+              <div className="flex gap-3 animate-fade-in">
+                <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 text-lg">🤖</div>
+                <div className="bg-slate-100 px-5 py-3 rounded-2xl rounded-tl-none border border-slate-200">
+                  <div className="flex gap-1.5">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          <div className="p-4 border-t border-emerald-100 flex gap-3">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !chatLoading && handleChatSend()}
+              placeholder={lang === 'hi' ? 'जैसे: नीम का तेल कितना डालें?' : 'e.g. How much neem oil should I use?'}
+              className="flex-1 px-5 py-3.5 rounded-2xl border-2 border-slate-200 focus:border-emerald-500 focus:outline-none font-medium text-slate-800 bg-white transition-colors"
+            />
+            <button
+              onClick={handleChatSend}
+              disabled={chatLoading || !chatInput.trim()}
+              className="px-6 py-3.5 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {lang === 'hi' ? 'भेजें' : 'Send'} <span className="text-lg">→</span>
+            </button>
+          </div>
+        </div>
+
         <div className="flex justify-center pt-8">
            <Link href="/scan">
               <button className="btn-premium px-12 py-5 text-xl">{t.another}</button>

@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "gemma4"
 
+    # Twilio (SMS Notifications)
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_FROM_NUMBER: str = ""
+
     # JWT Auth
     JWT_SECRET: str = "change_me_in_production"
     JWT_ALGORITHM: str = "HS256"

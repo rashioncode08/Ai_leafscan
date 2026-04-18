@@ -218,3 +218,87 @@ export async function getDiseaseRisk(lat: number, lon: number, disease: string) 
   if (!res.ok) throw new Error("Failed to fetch weather risk");
   return res.json();
 }
+
+/**
+ * AI-powered analysis of NDVI satellite data
+ */
+export async function analyzeFarm(coordinates: number[][], ndviUrl: string, locationName: string = "") {
+  const res = await fetch(`${API_BASE}/api/farm/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ coordinates, ndvi_url: ndviUrl, location_name: locationName }),
+  });
+  if (!res.ok) throw new Error("Farm analysis failed");
+  return res.json();
+}
+
+/**
+ * Contextual chat about farm NDVI analysis
+ */
+export async function farmChat(analysisContext: string, question: string, scanId: string = "", language: string = "en") {
+  const res = await fetch(`${API_BASE}/api/farm/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ analysis_context: analysisContext, question, scan_id: scanId, language }),
+  });
+  if (!res.ok) throw new Error("Farm chat failed");
+  return res.json();
+}
+
+/**
+ * Save an NDVI scan to the user's profile
+ */
+export async function saveFarmScan(coordinates: number[][], ndviUrl: string, analysis: string = "", locationName: string = "") {
+  const res = await fetch(`${API_BASE}/api/farm/save`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify({ coordinates, ndvi_url: ndviUrl, analysis, location_name: locationName }),
+  });
+  if (!res.ok) throw new Error("Failed to save scan");
+  return res.json();
+}
+
+/**
+ * Get all saved farm scans for the logged-in user
+ */
+export async function getFarmScans() {
+  const res = await fetch(`${API_BASE}/api/farm/scans`, {
+    headers: { ...getAuthHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch farm scans");
+  return res.json();
+}
+
+/**
+ * Contextual chat about a disease detection result
+ */
+export async function resultChat(detectionId: string, question: string, language: string = "en") {
+  const res = await fetch(`${API_BASE}/api/chat/results`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ detection_id: detectionId, question, language }),
+  });
+  if (!res.ok) throw new Error("Chat failed");
+  return res.json();
+}
+
+/**
+ * Get chat history for a detection result
+ */
+export async function getResultChatHistory(detectionId: string) {
+  const res = await fetch(`${API_BASE}/api/chat/results/${detectionId}`);
+  if (!res.ok) throw new Error("Failed to fetch chat history");
+  return res.json();
+}
+
+/**
+ * Get current user's profile
+ */
+export async function getProfile() {
+  const res = await fetch(`${API_BASE}/api/auth/me`, {
+    headers: { ...getAuthHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch profile");
+  return res.json();
+}
+

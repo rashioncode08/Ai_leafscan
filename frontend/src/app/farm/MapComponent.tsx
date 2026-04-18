@@ -74,12 +74,20 @@ export default function MapComponent({ onPolygonDrawn, ndviPolygon, ndviUrl }: M
   const [satellite, setSatellite] = useState(true);
 
   useEffect(() => {
-    if (navigator.geolocation) {
+    if (navigator.geolocation && !ndviPolygon) {
       navigator.geolocation.getCurrentPosition((pos) => {
         setPosition([pos.coords.latitude, pos.coords.longitude]);
       });
     }
-  }, []);
+  }, [ndviPolygon]);
+
+  useEffect(() => {
+    if (ndviPolygon && ndviPolygon.length > 0) {
+      const lat = ndviPolygon.reduce((acc, curr) => acc + curr[0], 0) / ndviPolygon.length;
+      const lng = ndviPolygon.reduce((acc, curr) => acc + curr[1], 0) / ndviPolygon.length;
+      setPosition([lat, lng]);
+    }
+  }, [ndviPolygon]);
 
   return (
     <div className="relative h-full w-full rounded-3xl overflow-hidden shadow-2xl border-4 border-emerald-500">
