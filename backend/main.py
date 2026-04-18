@@ -10,6 +10,8 @@ from config import get_settings
 from database.mongo import init_db
 from ml.model_inference import load_model
 from routes import detect, history, recommend, auth
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from services.monitoring_service import check_farm_scans
 import logging
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -28,8 +30,16 @@ async def lifespan(app: FastAPI):
     # Load PyTorch model (singleton)
     load_model()
 
+    # Start background scheduler
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(check_farm_scans, 'interval', minutes=10)
+    scheduler.start()
+    logger.info("[OK] Background monitoring scheduler started (10 min interval).")
+
     logger.info("[OK] Kisan Sathi backend ready!")
     yield
+    
+    scheduler.shutdown()
     logger.info("Kisan Sathi backend shutting down")
 
 
