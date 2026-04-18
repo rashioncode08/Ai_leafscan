@@ -23,6 +23,7 @@ def init_ee():
         env_key = os.environ.get("GEE_KEY_JSON")
         if env_key:
             key_dict = json.loads(env_key)
+            project_id = key_dict.get("project_id")
             credentials = Credentials.from_service_account_info(
                 key_dict, scopes=["https://www.googleapis.com/auth/earthengine"]
             )
@@ -33,13 +34,20 @@ def init_ee():
                 logger.error(f"GEE key file not found at {key_path} and GEE_KEY_JSON env var is missing.")
                 return False
                 
+            with open(key_path, 'r') as f:
+                key_dict = json.load(f)
+                project_id = key_dict.get("project_id")
+                
             credentials = Credentials.from_service_account_file(
                 key_path, scopes=["https://www.googleapis.com/auth/earthengine"]
             )
             logger.info("Using GEE credentials from file")
 
-        # Initialize
-        ee.Initialize(credentials, project="intricate-muse-493714-c8")
+        if not project_id:
+            raise Exception("project_id not found in GEE JSON key")
+
+        # Initialize dynamically with whatever project the user provides
+        ee.Initialize(credentials, project=project_id)
         _INITIALIZED = True
         logger.info("Successfully initialized Google Earth Engine")
         return True
