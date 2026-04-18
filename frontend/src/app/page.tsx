@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Loader from "@/components/Loader";
 
 const TRANSLATIONS: Record<string, any> = {
   en: {
@@ -30,7 +31,6 @@ export default function HomePage() {
   const [mounted, setMounted] = useState(false);
   const [lang, setLang] = useState("en");
   const [isAuth, setIsAuth] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Scan states
   const [image, setImage] = useState<File | null>(null);
@@ -40,6 +40,7 @@ export default function HomePage() {
   const streamRef = useRef<MediaStream | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isExecutingScan, setIsExecutingScan] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -129,82 +130,17 @@ export default function HomePage() {
 
   const executeScan = () => {
     if (!image) return;
-    router.push("/scan");
+    setIsExecutingScan(true);
+    setTimeout(() => {
+      router.push("/scan");
+    }, 2500);
   };
 
   return (
     <main className="min-h-screen bg-[var(--bg)] selection:bg-[var(--green-200)]">
-      {/* ── Navbar (Sticky & Glass) ───────────────────────── */}
-      <nav className="fixed top-0 w-full z-50 px-6 py-4 transition-all duration-300 glass border-b border-[var(--glass-border)]">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          {/* Logo - Left */}
-          <Link href="/" className="flex items-center gap-3 cursor-pointer group">
-            <img src="/logo(leafscan).png" alt="LeafScan Logo" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform" />
-            <span className="font-extrabold text-2xl tracking-tight text-[var(--text)]">
-              Leaf<span className="text-[var(--primary)]">Scan</span>
-            </span>
-          </Link>
-
-          {/* Links - Center */}
-          <div className="hidden md:flex gap-8 items-center font-semibold text-[var(--text-secondary)]">
-            <Link href="/" className="hover:text-[var(--primary)] transition-colors">{t.navHome}</Link>
-            <a href="#about" className="hover:text-[var(--primary)] transition-colors">{t.navAbout}</a>
-            <Link href="/search" className="hover:text-[var(--primary)] transition-colors">{t.navSearch}</Link>
-            <Link href="/history" className="hover:text-[var(--primary)] transition-colors">{t.navHistory}</Link>
-            <Link href="/weather" className="hover:text-[var(--primary)] transition-colors">{t.navWeather}</Link>
-          </div>
-
-          {/* Login - Right */}
-          <div className="flex items-center gap-3">
-            {isAuth ? (
-              <button 
-                onClick={() => {
-                  localStorage.removeItem("kisan_token");
-                  window.dispatchEvent(new Event("auth-change"));
-                }}
-                className="btn-ghost px-3 py-2 md:px-6 md:py-3 text-sm"
-              >
-                Logout
-              </button>
-            ) : (
-              <Link href="/login" className="btn-primary py-2 px-4 md:px-6 rounded-full text-xs md:text-sm whitespace-nowrap">
-                <span className="hidden sm:inline">{t.loginBtn}</span>
-                <span className="sm:hidden">Login</span>
-              </Link>
-            )}
-
-            {/* Hamburger Icon */}
-            <button 
-              className="md:hidden p-2 text-[var(--text)] hover:text-[var(--primary)] transition-colors"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                {isMobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu Dropdown */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 w-full glass-dark bg-[var(--green-950)]/90 border-t border-white/10 animate-fade-in shadow-2xl">
-            <div className="flex flex-col px-6 py-4 space-y-4 font-bold text-white/90">
-              <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--primary-light)] py-2 border-b border-white/10">{t.navHome}</Link>
-              <a href="#about" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--primary-light)] py-2 border-b border-white/10">{t.navAbout}</a>
-              <Link href="/search" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--primary-light)] py-2 border-b border-white/10">{t.navSearch}</Link>
-              <Link href="/history" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--primary-light)] py-2 border-b border-white/10">{t.navHistory}</Link>
-              <Link href="/weather" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--primary-light)] py-2">{t.navWeather}</Link>
-            </div>
-          </div>
-        )}
-      </nav>
 
       {/* ── Hero Section with Video Background and Image Collage ──────────────── */}
-      <section className="relative min-h-[100vh] flex items-center justify-center pt-32 pb-40 overflow-hidden">
+      <section className="relative min-h-[100vh] flex items-center justify-center pt-24 pb-28 md:pt-32 md:pb-40 overflow-hidden">
         {/* Video Background */}
         <div className="absolute inset-0 z-0">
           <img 
@@ -217,24 +153,25 @@ export default function HomePage() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-12 animate-fade-in-up w-full">
           
-          <div className="text-left space-y-8 md:w-1/2">
-            <h1 className="text-5xl md:text-7xl font-extrabold text-white leading-tight tracking-tight drop-shadow-md">
+          <div className="text-left space-y-6 md:space-y-8 md:w-1/2">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold text-white leading-tight tracking-tight drop-shadow-md">
               We take care of your <br className="hidden md:block"/>
               <span className="text-gradient-light">plants intelligently</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-white/90 leading-relaxed font-medium drop-shadow">
+            <p className="text-base md:text-xl text-white/90 leading-relaxed font-medium drop-shadow">
               {t.heroDesc}
             </p>
-            <div className="pt-4 flex gap-4">
-              <a href="#scan" className="btn-primary py-3 px-8 text-lg">Scan Now</a>
-              <a href="#about" className="btn-secondary py-3 px-8 text-lg">Learn More</a>
+            <div className="pt-2 md:pt-4 flex flex-col sm:flex-row gap-3 md:gap-4">
+              <a href="#scan" className="btn-primary py-3 px-8 text-base md:text-lg text-center w-full sm:w-auto">Scan Now</a>
+              <a href="#about" className="btn-secondary py-3 px-8 text-base md:text-lg text-center w-full sm:w-auto">Learn More</a>
+              <Link href="/farm" className="btn-secondary py-3 px-8 text-base md:text-lg text-center w-full sm:w-auto bg-[#4caf50]/10 text-green-300 border-[#4caf50]/50 hover:bg-[#4caf50]/20">Explore Your Area</Link>
             </div>
           </div>
           
-          <div className="md:w-1/2 flex justify-center">
+          <div className="md:w-1/2 flex justify-center mt-10 md:mt-0">
             {/* Image Collage */}
-            <div className="hero-collage">
+            <div className="hero-collage scale-90 md:scale-100">
               <div className="hero-collage-img">
                 <img src="/Best%20Organic%20Fertilizers%20for%20Summer%20Growth.webp" alt="Organic Fertilizer" />
               </div>
@@ -250,17 +187,44 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── How It Works Section ──────────────────────────────── */}
+      <section className="py-20 md:py-24 px-6 bg-[var(--green-50)] relative">
+        <div className="max-w-7xl mx-auto text-center space-y-12 md:space-y-16">
+          <div className="space-y-4">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-[var(--text)]">How LeafScan Works</h2>
+            <p className="text-[var(--text-secondary)] font-medium text-base md:text-lg max-w-2xl mx-auto">Three simple steps to healthier plants and better yields.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="glass p-8 rounded-3xl bg-white shadow-xl hover:-translate-y-2 transition-transform duration-300 border border-[var(--glass-border)]">
+              <div className="w-16 h-16 bg-[var(--green-100)] text-[var(--primary)] rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">1</div>
+              <h3 className="text-xl font-bold text-[var(--text)] mb-4">Upload Image</h3>
+              <p className="text-[var(--text-secondary)]">Take a clear photo of the affected plant leaf or upload from your gallery.</p>
+            </div>
+            <div className="glass p-8 rounded-3xl bg-white shadow-xl hover:-translate-y-2 transition-transform duration-300 border border-[var(--glass-border)]">
+              <div className="w-16 h-16 bg-[var(--green-100)] text-[var(--primary)] rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">2</div>
+              <h3 className="text-xl font-bold text-[var(--text)] mb-4">AI Analysis</h3>
+              <p className="text-[var(--text-secondary)]">Our advanced AI model instantly scans the image to detect any diseases.</p>
+            </div>
+            <div className="glass p-8 rounded-3xl bg-white shadow-xl hover:-translate-y-2 transition-transform duration-300 border border-[var(--glass-border)]">
+              <div className="w-16 h-16 bg-[var(--green-100)] text-[var(--primary)] rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">3</div>
+              <h3 className="text-xl font-bold text-[var(--text)] mb-4">Get Treatment</h3>
+              <p className="text-[var(--text-secondary)]">Receive accurate diagnosis along with organic and chemical treatment recommendations.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── About Section ─────────────────────────────────────── */}
-      <section id="about" className="py-32 px-6 bg-[var(--bg-warm)] border-y border-[var(--earth-200)] relative overflow-hidden scroll-mt-24">
+      <section id="about" className="py-20 md:py-32 px-6 bg-[var(--bg-warm)] border-y border-[var(--earth-200)] relative overflow-hidden scroll-mt-24">
         <div className="absolute right-0 top-0 w-[800px] h-[800px] bg-[url('/images%20(3).jfif')] bg-cover opacity-5 mix-blend-luminosity rounded-full filter blur-xl translate-x-1/2 -translate-y-1/4"></div>
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center relative z-10">
-          <div className="space-y-8 text-left">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-[var(--text)] leading-tight">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 md:gap-16 items-center relative z-10">
+          <div className="space-y-6 md:space-y-8 text-left">
+            <h2 className="text-3xl md:text-5xl font-extrabold text-[var(--text)] leading-tight">
               {t.aboutTitle.split(' ').slice(0, -1).join(' ')} <br/>
               <span className="text-[var(--primary)]">{t.aboutTitle.split(' ').slice(-1)}</span>
             </h2>
-            <div className="w-20 h-2 bg-[var(--primary-light)] rounded-full"></div>
-            <p className="text-lg text-[var(--text-secondary)] font-medium leading-relaxed">
+            <div className="w-16 md:w-20 h-2 bg-[var(--primary-light)] rounded-full"></div>
+            <p className="text-base md:text-lg text-[var(--text-secondary)] font-medium leading-relaxed">
               {t.aboutDesc}
             </p>
             <ul className="space-y-4 pt-4">
@@ -294,22 +258,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Scan Section ──────────────────────────────────────── */}
-      <section id="scan" className="py-32 px-6 relative scroll-mt-24 overflow-hidden">
-        {/* Blurred Video Background */}
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="/a68268f1c84cdb06d93efa985ce9566b.jpg" 
-            alt="Scan Background" 
-            className="w-full h-full object-cover scale-100"
-          />
-          <div className="scan-video-overlay" />
-        </div>
-
-        <div className="max-w-5xl mx-auto text-center space-y-12 relative z-10">
-          <div className="space-y-4">
-            <h2 className="text-4xl font-extrabold text-[var(--text)]">{t.scanTitle}</h2>
-            <p className="text-[var(--text-secondary)] font-medium text-lg max-w-2xl mx-auto">{t.scanDesc}</p>
+      {/* ── Interactive Scan CTA Section ──────────────────────── */}
+      <section id="scan" className="py-20 md:py-32 px-6 relative bg-[var(--bg)] scroll-mt-24">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center space-y-4 mb-12 md:mb-16">
+            <h2 className="text-3xl md:text-5xl font-extrabold text-[var(--text)]">{t.scanTitle}</h2>
+            <p className="text-[var(--text-secondary)] font-medium text-base md:text-lg max-w-2xl mx-auto">{t.scanDesc}</p>
           </div>
 
           <div className="glass p-8 md:p-12 rounded-[2.5rem] border-[var(--glass-border)] shadow-2xl transition-all bg-white/60 backdrop-blur-xl">
@@ -327,13 +281,18 @@ export default function HomePage() {
                   </div>
                   <canvas ref={canvasRef} className="hidden" />
                </div>
+            ) : isExecutingScan ? (
+               <div className="space-y-8 animate-fade-in py-12 flex flex-col items-center">
+                 <Loader />
+                 <h3 className="text-2xl font-bold text-[var(--text)] mt-8 animate-pulse">Analyzing Leaf Structure...</h3>
+               </div>
             ) : preview ? (
                <div className="space-y-8 animate-fade-in">
                  <div className="relative aspect-video rounded-3xl overflow-hidden shadow-xl border-4 border-white max-w-2xl mx-auto">
                    <img src={preview} className="w-full h-full object-cover" alt="Preview" />
                    <button onClick={() => setPreview(null)} className="absolute top-4 right-4 w-10 h-10 bg-white/80 text-red-600 rounded-full flex items-center justify-center font-black hover:bg-red-600 hover:text-white transition-all shadow">✕</button>
                  </div>
-                 <button onClick={executeScan} className="btn-primary px-12 py-4 text-xl shadow-lg inline-flex items-center gap-3">
+                 <button onClick={executeScan} className="btn-primary w-full sm:w-auto px-12 py-4 text-xl shadow-lg inline-flex items-center justify-center gap-3">
                    {t.analyzing} <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                  </button>
                </div>
@@ -342,22 +301,22 @@ export default function HomePage() {
                  onDragOver={handleDragOver}
                  onDragLeave={handleDragLeave}
                  onDrop={handleDrop}
-                 className={`border-3 border-dashed rounded-3xl p-12 transition-all duration-300 flex flex-col items-center justify-center gap-8 min-h-[350px] bg-white/50 ${isDragging ? "border-[var(--primary)] bg-[var(--green-50)] scale-[1.02]" : "border-[var(--green-200)] hover:border-[var(--primary-light)]"}`}
+                 className={`border-3 border-dashed rounded-3xl p-8 md:p-12 transition-all duration-300 flex flex-col items-center justify-center gap-6 min-h-[300px] bg-white/50 ${isDragging ? "border-[var(--primary)] bg-[var(--green-50)] scale-[1.02]" : "border-[var(--green-200)] hover:border-[var(--primary-light)]"}`}
                >
-                 <div className="w-24 h-24 rounded-full bg-[var(--green-100)] text-[var(--primary)] flex items-center justify-center shadow-inner animate-float-slow">
-                   <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                 <div className="w-20 h-20 rounded-full bg-[var(--green-100)] text-[var(--primary)] flex items-center justify-center shadow-inner animate-float-slow">
+                   <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                  </div>
-                 <div className="space-y-2">
-                   <h3 className="text-2xl font-bold text-[var(--text)]">{t.uploadOrDrop}</h3>
-                   <p className="text-[var(--text-muted)] font-medium">Supports JPG, PNG (Max 5MB)</p>
+                 <div className="text-center space-y-2">
+                   <h3 className="text-xl font-bold text-[var(--text)]">{t.uploadOrDrop}</h3>
+                   <p className="text-[var(--text-muted)] text-sm font-medium">Supports JPG, PNG (Max 5MB)</p>
                  </div>
                  
                  <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4 w-full max-w-md mx-auto">
-                    <button onClick={startCamera} className="btn-primary flex-1 py-3 flex items-center justify-center gap-2">
-                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    <button onClick={startCamera} className="btn-primary flex-1 py-3 flex items-center justify-center gap-2 w-full">
+                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                      {t.takePhoto}
                    </button>
-                   <label className="btn-secondary cursor-pointer flex-1 py-3 text-center flex items-center justify-center gap-2">
+                   <label className="btn-secondary cursor-pointer py-3 px-8 flex items-center justify-center gap-2 flex-1 w-full">
                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                      {t.chooseGallery}
                      <input type="file" className="hidden" accept="image/*" onChange={onFileChange} />
@@ -365,6 +324,37 @@ export default function HomePage() {
                  </div>
                </div>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Farm Mapping Section ─────────────────────────────────────── */}
+      <section className="py-32 px-6 bg-[var(--bg)] relative overflow-hidden">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center relative z-10">
+          <div className="order-last md:order-first relative">
+             <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white group">
+               <img src="/farm.png" alt="Farm Map" className="w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+               <div className="absolute bottom-6 left-6 text-white">
+                  <h4 className="text-2xl font-black flex items-center gap-2"><span className="text-3xl">🛰️</span> Live Satellite View</h4>
+                  <p className="text-sm font-medium opacity-90 mt-1">Track NDVI and crop health from space.</p>
+               </div>
+             </div>
+             <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[var(--primary)] rounded-full mix-blend-multiply filter blur-2xl opacity-30"></div>
+          </div>
+          <div className="space-y-8 text-left">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-[var(--text)] leading-tight">
+              Monitor Your <span className="text-[var(--primary)]">Entire Area</span>
+            </h2>
+            <div className="w-20 h-2 bg-[var(--primary-light)] rounded-full"></div>
+            <p className="text-lg text-[var(--text-secondary)] font-medium leading-relaxed">
+              Don't just scan single leaves. Map your entire field and analyze crop health from space using advanced NDVI satellite imagery. Detect stress patterns early before they spread and optimize your yield.
+            </p>
+            <div className="pt-4">
+               <Link href="/farm" className="btn-primary py-4 px-8 text-lg inline-flex items-center gap-3">
+                 Explore My Area <span className="text-xl">→</span>
+               </Link>
+            </div>
           </div>
         </div>
       </section>

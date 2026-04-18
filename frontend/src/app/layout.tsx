@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { Poppins, Outfit } from "next/font/google";
 import "./globals.css";
 
 const pacifico = localFont({
@@ -11,6 +12,19 @@ const pacifico = localFont({
 const spaceGrotesk = localFont({
   src: "../../public/SpaceGrotesk-VariableFont_wght.ttf",
   variable: "--font-space-grotesk",
+  display: "swap",
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+  display: "swap",
+});
+
+const poppins = Poppins({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-poppins",
   display: "swap",
 });
 
@@ -35,8 +49,12 @@ export const viewport: Viewport = {
   themeColor: "#1a7a4c",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5,
+  maximumScale: 1,
+  userScalable: false,
 };
+
+import BottomNav from "@/components/BottomNav";
+import Navbar from "@/components/Navbar";
 
 export default function RootLayout({
   children,
@@ -44,8 +62,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${pacifico.variable} ${spaceGrotesk.variable}`}>
-      <body className="antialiased overflow-x-hidden">{children}</body>
+    <html lang="en" className={`${pacifico.variable} ${spaceGrotesk.variable} ${outfit.variable} ${poppins.variable}`}>
+      <body className="antialiased overflow-x-hidden md:pb-0 pb-[80px]">
+        <Navbar />
+        {children}
+        <BottomNav />
+      </body>
     </html>
   );
 }

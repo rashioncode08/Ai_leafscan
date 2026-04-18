@@ -59,6 +59,10 @@
 
 /* ── Base ──────────────────────────────────────────────── */
 @layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
   body {
     @apply antialiased;
     font-family: var(--font-space-grotesk), sans-serif;

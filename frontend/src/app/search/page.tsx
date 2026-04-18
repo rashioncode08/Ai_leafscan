@@ -1,42 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-
-const MOCK_DISEASES = [
-  {
-    id: 1,
-    name: "Tomato Early Blight",
-    symptoms: "Brown spots with concentric rings on lower leaves. Yellowing of leaves.",
-    treatment: "Apply copper-based fungicides. Ensure proper spacing for airflow.",
-  },
-  {
-    id: 2,
-    name: "Powdery Mildew",
-    symptoms: "White, powdery fungal spots on leaves and stems. Leaves may twist and distort.",
-    treatment: "Use neem oil or sulfur-based organic sprays. Avoid overhead watering.",
-  },
-  {
-    id: 3,
-    name: "Potato Late Blight",
-    symptoms: "Water-soaked dark lesions on leaves, white fungal growth on undersides in humid conditions.",
-    treatment: "Remove infected plants immediately. Apply protective fungicides before infection spreads.",
-  },
-  {
-    id: 4,
-    name: "Citrus Canker",
-    symptoms: "Raised, corky lesions with yellow halos on leaves, stems, and fruit.",
-    treatment: "Prune infected branches. Apply copper bactericide during growing season.",
-  }
-];
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
+  const [diseases, setDiseases] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredDiseases = MOCK_DISEASES.filter(d => 
-    d.name.toLowerCase().includes(query.toLowerCase()) || 
-    d.symptoms.toLowerCase().includes(query.toLowerCase())
-  );
+  useEffect(() => {
+    const fetchDiseases = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`http://localhost:8000/api/diseases?search=${query}`);
+        const data = await res.json();
+        setDiseases(data.diseases || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    const timeoutId = setTimeout(() => {
+      fetchDiseases();
+    }, 300); // debounce search
+    
+    return () => clearTimeout(timeoutId);
+  }, [query]);
 
   return (
     <main 
@@ -45,36 +36,8 @@ export default function SearchPage() {
     >
       <div className="absolute inset-0 bg-[var(--bg)]/80 backdrop-blur-sm z-0"></div>
       <div className="relative z-10">
-        <nav className="w-full z-50 px-6 py-4 glass border-b border-[var(--glass-border)] sticky top-0">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          {/* Logo - Left */}
-          <Link href="/" className="flex items-center gap-3 cursor-pointer group">
-            <img src="/logo(leafscan).png" alt="LeafScan Logo" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform" />
-            <span className="font-extrabold text-2xl tracking-tight text-[var(--text)]">
-              Leaf<span className="text-[var(--primary)]">Scan</span>
-            </span>
-          </Link>
 
-          {/* Links - Center */}
-          <div className="hidden md:flex gap-8 items-center font-semibold text-[var(--text-secondary)]">
-            <Link href="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
-            <Link href="/#about" className="hover:text-[var(--primary)] transition-colors">About Us</Link>
-            <Link href="/search" className="hover:text-[var(--primary)] transition-colors">Search</Link>
-            <Link href="/history" className="hover:text-[var(--primary)] transition-colors">History</Link>
-            <Link href="/weather" className="hover:text-[var(--primary)] transition-colors">Weather</Link>
-          </div>
-
-          {/* Login - Right */}
-          <div className="flex items-center gap-3">
-             <Link href="/login" className="btn-primary py-2 px-4 md:px-6 rounded-full text-xs md:text-sm whitespace-nowrap">
-                <span className="hidden sm:inline">Login / Sign In</span>
-                <span className="sm:hidden">Login</span>
-             </Link>
-          </div>
-        </div>
-      </nav>
-
-      <div className="max-w-4xl mx-auto px-6 py-12 space-y-8 animate-fade-in-up">
+      <div className="max-w-4xl mx-auto px-6 py-28 space-y-8 animate-fade-in-up">
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-extrabold text-[var(--text)] tracking-tight">Search Diseases</h1>
           <p className="text-lg text-[var(--text-secondary)] font-medium">Find information on crop diseases, symptoms, and treatments.</p>
@@ -96,22 +59,34 @@ export default function SearchPage() {
 
         {/* Results */}
         <div className="space-y-6 pt-4 pb-12">
-          {filteredDiseases.length > 0 ? (
-            filteredDiseases.map((disease) => (
+          {loading ? (
+            <div className="text-center py-12 text-[var(--text-secondary)] font-semibold animate-pulse">Loading diseases...</div>
+          ) : diseases.length > 0 ? (
+            diseases.map((disease) => (
               <div key={disease.id} className="glass-card p-6 pb-8 md:p-8 card-hover relative overflow-hidden group">
                 <div className="absolute top-0 left-0 w-2 h-full bg-[var(--primary)] group-hover:bg-[var(--primary-light)] transition-colors"></div>
                 <h3 className="text-2xl font-bold text-[var(--text)] mb-4">{disease.name}</h3>
                 <div className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Symptoms</h4>
-                    <p className="text-[var(--text-secondary)] font-medium">{disease.symptoms}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-[var(--primary-dark)] uppercase tracking-wider mb-1">Treatment Plan</h4>
-                    <div className="p-4 bg-[var(--green-50)] border border-[var(--green-100)] rounded-xl font-medium text-[var(--green-900)]">
-                      {disease.treatment}
+                  {disease.symptoms && (
+                    <div>
+                      <h4 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Symptoms</h4>
+                      <p className="text-[var(--text-secondary)] font-medium">{disease.symptoms}</p>
                     </div>
-                  </div>
+                  )}
+                  {disease.treatment && (
+                    <div>
+                      <h4 className="text-sm font-bold text-[var(--primary-dark)] uppercase tracking-wider mb-1">Treatment Plan</h4>
+                      <div className="p-4 bg-[var(--green-50)] border border-[var(--green-100)] rounded-xl font-medium text-[var(--green-900)]">
+                        {disease.treatment}
+                      </div>
+                    </div>
+                  )}
+                  {disease.prevention && (
+                    <div>
+                      <h4 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-1">Prevention</h4>
+                      <p className="text-[var(--text-secondary)] font-medium">{disease.prevention}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             ))

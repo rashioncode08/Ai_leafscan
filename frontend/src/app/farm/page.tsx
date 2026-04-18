@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { analyzeFarm, farmChat, saveFarmScan, getFarmScans, getToken } from "@/lib/api";
+import Loader from "@/components/Loader";
 
 const MapComponent = dynamic(() => import("./MapComponent"), { ssr: false });
 
@@ -150,27 +151,30 @@ export default function FarmMapPage() {
   };
 
   return (
-    <main className="min-h-screen mesh-bg py-8 px-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <main className="min-h-screen relative pb-20">
+      {/* Fixed Parallax Background */}
+      <div className="fixed inset-0 z-[-1]">
+        <div className="absolute inset-0 bg-slate-900/60 z-10 backdrop-blur-[2px]"></div>
+        <img src="/a68268f1c84cdb06d93efa985ce9566b.jpg" alt="Farm Background" className="w-full h-full object-cover scale-105" />
+      </div>
+
+      <div className="max-w-6xl mx-auto px-6 space-y-8 relative z-10 pt-24 md:pt-28">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="group flex items-center gap-2 text-slate-800 hover:text-emerald-600 transition-all font-bold"
-          >
-            <span className="w-8 h-8 rounded-lg glass flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all">
-              ←
-            </span>
-            Back to Home
-          </Link>
-          <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
-            <span className="text-4xl">🛰️</span> Farm Mapping & NDVI
-          </h1>
+        <div className="glass p-6 md:p-10 rounded-[2.5rem] bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-emerald-500 rounded-full mix-blend-screen filter blur-[80px] opacity-40"></div>
+          <div className="space-y-3 relative z-10 text-center md:text-left">
+            <h1 className="text-3xl md:text-5xl font-black text-white flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 md:gap-4 drop-shadow-lg tracking-tight">
+              <span className="text-4xl md:text-5xl drop-shadow-2xl">🛰️</span> My Area Mapping
+            </h1>
+            <p className="text-emerald-50 font-medium text-base md:text-xl drop-shadow max-w-2xl">
+              Map your field to fetch Sentinel-2 satellite data and detect crop stress from space.
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           {/* Map Container */}
-          <div className="lg:col-span-2 h-[600px]">
+          <div className="lg:col-span-2 h-[400px] lg:h-[650px] rounded-[2rem] lg:rounded-[2.5rem] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.3)] border-[4px] lg:border-[6px] border-white/10 glass bg-slate-900 relative">
             <MapComponent
               onPolygonDrawn={handlePolygonDrawn}
               ndviPolygon={polygon}
@@ -180,89 +184,93 @@ export default function FarmMapPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <div className="glass p-6 bg-white/80 rounded-3xl border-2 border-emerald-100 shadow-xl space-y-4">
-              <h2 className="text-2xl font-black text-emerald-900">Step 1: Map Your Farm</h2>
-              <p className="text-slate-600 font-medium">
-                Use the drawing tools (top-left of map) to drop pins around the boundary of your
-                field.
+            <div className="glass p-6 md:p-10 bg-white/90 backdrop-blur-xl rounded-[2rem] md:rounded-[2.5rem] border border-white/50 shadow-2xl space-y-8 animate-fade-in-up">
+              <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+                <span className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">1</span>
+                Map Your Field
+              </h2>
+              <p className="text-slate-600 font-medium leading-relaxed">
+                Use the drawing tools on the map to drop pins around the boundary of your field.
               </p>
 
               {polygon ? (
-                <div className="p-4 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 font-bold flex items-center gap-3">
-                  <span className="text-2xl">✅</span> Boundary saved! ({polygon.length} points)
+                <div className="p-4 bg-emerald-500/10 text-emerald-700 rounded-2xl border border-emerald-200 font-bold flex items-center gap-3 shadow-inner">
+                  <span className="text-2xl">✅</span> Boundary saved ({polygon.length} points)
                 </div>
               ) : (
-                <div className="p-4 bg-slate-100 text-slate-500 rounded-xl border border-slate-200 font-bold flex items-center gap-3">
-                  <span className="text-2xl">✏️</span> Waiting for you to draw...
+                <div className="p-4 bg-slate-100/50 text-slate-500 rounded-2xl border border-slate-200 font-bold flex items-center gap-3">
+                  <span className="text-2xl animate-pulse">✏️</span> Waiting for drawing...
                 </div>
               )}
             </div>
 
             <div
-              className={`glass p-6 rounded-3xl border-2 shadow-xl space-y-4 transition-all ${
+              className={`glass p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border shadow-2xl space-y-6 transition-all duration-500 ${
                 polygon
-                  ? "bg-slate-900 text-white border-emerald-500"
-                  : "bg-slate-50 border-slate-200 opacity-50 pointer-events-none"
+                  ? "bg-slate-900/90 backdrop-blur-xl text-white border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.15)]"
+                  : "bg-white/40 backdrop-blur-md border-white/20 opacity-60 pointer-events-none"
               }`}
             >
-              <h2 className="text-2xl font-black flex items-center gap-3">Step 2: Satellite Scan</h2>
+              <h2 className="text-2xl font-black flex items-center gap-3">
+                <span className={`w-10 h-10 rounded-full flex items-center justify-center text-xl ${polygon ? "bg-emerald-500/20 text-emerald-400" : "bg-white/50 text-slate-500"}`}>2</span>
+                Satellite Scan
+              </h2>
               <p className="text-sm font-medium opacity-80 leading-relaxed">
-                Fetch Sentinel-2 satellite data to calculate the NDVI and spot crop stress from
-                space.
+                Fetch high-res Sentinel-2 satellite data to calculate the NDVI and spot crop stress from space.
               </p>
 
               {error && (
-                <div className="p-4 bg-red-50 text-red-600 rounded-xl font-bold text-sm border border-red-200">
-                  ⚠️ {error}
+                <div className="p-4 bg-red-500/10 text-red-400 rounded-2xl font-bold text-sm border border-red-500/20 flex items-start gap-3">
+                  <span className="text-lg">⚠️</span> <span>{error}</span>
                 </div>
               )}
 
               {!ndviUrl ? (
-                <button
-                  onClick={handleAnalyze}
-                  disabled={analyzing}
-                  className="w-full btn-premium py-4 bg-emerald-600 hover:bg-emerald-500 border-0 flex items-center justify-center gap-2"
-                >
-                  {analyzing ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Fetching Satellite Data...
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-xl">📡</span> Generate NDVI Map
-                    </>
-                  )}
-                </button>
+                analyzing ? (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <div className="scale-75 mb-4">
+                      <Loader />
+                    </div>
+                    <p className="text-emerald-400 font-bold text-lg animate-pulse">Analyzing Satellite Data...</p>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleAnalyze}
+                    disabled={analyzing}
+                    className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white py-4 rounded-2xl font-bold shadow-lg hover:shadow-emerald-500/50 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="text-xl">🛰️</span> Fetch Satellite Data
+                  </button>
+                )
               ) : (
-                <div className="space-y-4 animate-fade-in">
-                  <div className="p-4 bg-white/10 rounded-xl space-y-2">
-                    <p className="text-emerald-400 font-black text-sm tracking-widest uppercase">
+                <div className="space-y-5 animate-fade-in">
+                  <div className="p-5 bg-white/5 border border-white/10 rounded-2xl space-y-3 backdrop-blur-md">
+                    <p className="text-emerald-400 font-black text-xs tracking-widest uppercase mb-1">
                       Analysis Complete
                     </p>
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-red-500" />
-                      <span className="text-sm font-medium text-slate-200">Stressed areas (Red/Yellow)</span>
+                    <div className="flex items-center gap-3">
+                      <span className="w-4 h-4 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.6)]" />
+                      <span className="text-sm font-semibold text-slate-200">Stressed areas (Red/Yellow)</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-emerald-500" />
-                      <span className="text-sm font-medium text-slate-200">Healthy vegetation (Green)</span>
+                    <div className="flex items-center gap-3">
+                      <span className="w-4 h-4 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.6)]" />
+                      <span className="text-sm font-semibold text-slate-200">Healthy vegetation (Green)</span>
                     </div>
                   </div>
 
                   {/* Save + Clear buttons */}
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-3">
                     {isLoggedIn && (
                       <button
                         onClick={handleSave}
                         disabled={saving || saved}
-                        className={`flex-1 py-3 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-sm ${
+                        className={`w-full py-4 font-bold rounded-2xl transition-all flex items-center justify-center gap-2 text-md shadow-lg ${
                           saved
-                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                            : "bg-emerald-600 hover:bg-emerald-500 text-white"
+                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-default"
+                            : "bg-emerald-600 hover:bg-emerald-500 text-white hover:-translate-y-1 hover:shadow-emerald-500/25"
                         }`}
                       >
-                        {saved ? "✅ Saved to Profile" : saving ? "Saving..." : "💾 Save to Profile"}
+                        {saved ? "✅ Saved to Profile" : saving ? "Saving to Profile..." : "💾 Save to Profile"}
                       </button>
                     )}
                     <button
@@ -273,9 +281,9 @@ export default function FarmMapPage() {
                         setChatMessages([]);
                         setSaved(false);
                       }}
-                      className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition-all border border-white/10 text-sm"
+                      className="w-full py-3.5 bg-transparent hover:bg-white/10 text-white/80 hover:text-white font-bold rounded-2xl transition-all border border-white/10 text-sm"
                     >
-                      🗑️ Clear Map
+                      🗑️ Clear Map & Start Over
                     </button>
                   </div>
                 </div>
@@ -284,16 +292,18 @@ export default function FarmMapPage() {
 
             {/* Farm History Sidebar */}
             {isLoggedIn && (
-              <div className="glass p-6 rounded-3xl border-2 border-emerald-100 shadow-xl space-y-4 bg-white/80">
-                <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                  <span>📜</span> My Farm Scans
+              <div className="glass p-8 rounded-[2.5rem] border border-white/50 shadow-2xl space-y-4 bg-white/90 backdrop-blur-xl">
+                <h2 className="text-xl font-black text-slate-800 flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-lg">📜</span> My Saved Areas
                 </h2>
-                <div className="max-h-[300px] overflow-y-auto space-y-3 pr-2">
+                <div className="max-h-[300px] overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                   {farmHistory.length === 0 ? (
-                    <p className="text-sm text-slate-500 font-medium text-center py-4">No scans saved yet.</p>
+                    <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-2xl">
+                      <p className="text-sm text-slate-500 font-medium">No areas saved yet.</p>
+                    </div>
                   ) : (
                     farmHistory.map(scan => (
-                      <div key={scan.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:border-emerald-400 transition-colors"
+                      <div key={scan.id} className="p-4 bg-white rounded-2xl border border-slate-200 cursor-pointer hover:border-emerald-500 hover:shadow-md transition-all group"
                         onClick={() => {
                           setPolygon(scan.coordinates);
                           setNdviUrl(scan.ndvi_url);
@@ -302,15 +312,15 @@ export default function FarmMapPage() {
                           setSaved(true);
                         }}
                       >
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="font-bold text-slate-800 text-sm">
-                            {scan.location_name || `Scan (${scan.coordinates.length} points)`}
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-bold text-slate-800 text-sm group-hover:text-emerald-700 transition-colors">
+                            {scan.location_name || `Area (${scan.coordinates.length} points)`}
                           </span>
-                          <span className="text-xs text-slate-400">
+                          <span className="text-xs text-slate-400 font-medium bg-slate-100 px-2 py-1 rounded-md">
                             {new Date(scan.created_at).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 line-clamp-2">{scan.analysis || "No analysis available"}</p>
+                        <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{scan.analysis || "No AI analysis available"}</p>
                       </div>
                     ))
                   )}
@@ -337,9 +347,9 @@ export default function FarmMapPage() {
               </div>
 
               {aiLoading ? (
-                <div className="flex items-center gap-3 p-6 bg-white/5 rounded-2xl">
-                  <div className="w-6 h-6 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
-                  <p className="text-slate-300 font-medium">
+                <div className="flex flex-col items-center gap-6 p-10 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-md">
+                  <Loader />
+                  <p className="text-emerald-400 font-bold text-lg animate-pulse mt-4">
                     Analyzing satellite imagery with AI... This may take a moment.
                   </p>
                 </div>
@@ -356,27 +366,28 @@ export default function FarmMapPage() {
 
         {/* Chat Section */}
         {aiAnalysis && (
-          <div className="glass rounded-3xl overflow-hidden border-2 border-emerald-100 shadow-xl bg-white/80">
-            <div className="p-6 border-b border-emerald-100 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xl">
+          <div className="glass rounded-[2.5rem] overflow-hidden border border-white/50 shadow-2xl bg-white/95 backdrop-blur-2xl">
+            <div className="p-8 border-b border-slate-100 flex items-center gap-4 bg-slate-50/50">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-600/30">
                 💬
               </div>
               <div>
-                <h3 className="text-xl font-black text-slate-900">Ask More About Your Land</h3>
-                <p className="text-slate-500 text-sm font-medium">
+                <h3 className="text-2xl font-black text-slate-800 tracking-tight">Ask More About Your Land</h3>
+                <p className="text-slate-500 font-medium">
                   Chat with AI about your field analysis
                 </p>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="p-6 space-y-4 max-h-[400px] overflow-y-auto">
+            <div className="p-8 space-y-6 max-h-[500px] overflow-y-auto custom-scrollbar bg-slate-50/30">
               {chatMessages.length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-4xl mb-3">🌾</p>
-                  <p className="text-slate-400 font-medium">
+                <div className="text-center py-12">
+                  <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl">🌾</div>
+                  <h4 className="text-xl font-bold text-slate-700 mb-2">How can I help you?</h4>
+                  <p className="text-slate-500 font-medium max-w-md mx-auto">
                     Ask anything about your land — soil health, crop recommendations, water
-                    management...
+                    management, or treatment options.
                   </p>
                 </div>
               )}
@@ -384,24 +395,24 @@ export default function FarmMapPage() {
               {chatMessages.map((msg, i) => (
                 <div
                   key={i}
-                  className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
+                  className={`flex gap-4 ${msg.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
                 >
                   {msg.role === "ai" && (
-                    <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 text-lg">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 text-xl shadow-md">
                       🤖
                     </div>
                   )}
                   <div
-                    className={`max-w-[80%] p-4 rounded-2xl text-sm font-medium leading-relaxed ${
+                    className={`max-w-[75%] p-5 rounded-2xl text-[15px] font-medium leading-relaxed shadow-sm ${
                       msg.role === "user"
-                        ? "bg-emerald-600 text-white rounded-tr-none"
-                        : "bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200"
+                        ? "bg-emerald-600 text-white rounded-tr-sm"
+                        : "bg-white text-slate-700 rounded-tl-sm border border-slate-200"
                     }`}
                   >
                     {msg.text}
                   </div>
                   {msg.role === "user" && (
-                    <div className="w-9 h-9 rounded-xl bg-slate-800 text-white flex items-center justify-center flex-shrink-0 text-lg">
+                    <div className="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center flex-shrink-0 text-xl shadow-md">
                       🧑‍🌾
                     </div>
                   )}
@@ -409,15 +420,15 @@ export default function FarmMapPage() {
               ))}
 
               {chatLoading && (
-                <div className="flex gap-3 animate-fade-in">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 text-lg">
+                <div className="flex gap-4 animate-fade-in">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 text-xl shadow-md">
                     🤖
                   </div>
-                  <div className="bg-slate-100 px-5 py-3 rounded-2xl rounded-tl-none border border-slate-200">
-                    <div className="flex gap-1.5">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                  <div className="bg-white px-6 py-4 rounded-2xl rounded-tl-sm border border-slate-200 shadow-sm flex items-center">
+                    <div className="flex gap-2">
+                      <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                     </div>
                   </div>
                 </div>
@@ -426,21 +437,21 @@ export default function FarmMapPage() {
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-emerald-100 flex gap-3">
+            <div className="p-6 border-t border-slate-100 bg-white flex gap-4 items-center">
               <input
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !chatLoading && handleChatSend()}
                 placeholder="e.g. What fertilizer should I use for this soil?"
-                className="flex-1 px-5 py-3.5 rounded-2xl border-2 border-slate-200 focus:border-emerald-500 focus:outline-none font-medium text-slate-800 bg-white transition-colors"
+                className="flex-1 px-6 py-4 rounded-full border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none font-medium text-slate-800 bg-slate-50 focus:bg-white transition-all text-[15px]"
               />
               <button
                 onClick={handleChatSend}
                 disabled={chatLoading || !chatInput.trim()}
-                className="px-6 py-3.5 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="w-14 h-14 bg-emerald-600 text-white rounded-full hover:bg-emerald-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-600/30 hover:-translate-y-1"
               >
-                Send <span className="text-lg">→</span>
+                <svg className="w-6 h-6 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
               </button>
             </div>
           </div>
