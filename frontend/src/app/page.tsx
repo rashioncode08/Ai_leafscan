@@ -1,317 +1,407 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const TRANSLATIONS: Record<string, any> = {
   en: {
-    heroTag: "Next-Gen Crop Protection",
-    heroTitle: "Save Your Crops with Precision AI",
-    heroDesc: "Experience the future of farming. Detect 38+ crop diseases instantly using our state-of-the-art vision models. Expert treatment plans at your fingertips.",
-    startBtn: "Start Scanning",
-    createBtn: "Create Account",
-    trustedBy: "Trusted by 10,000+ farmers worldwide",
-    featuresTitle: "Built for Visual Intelligence",
-    featuresDesc: "Powerful features designed to give your crops the care they deserve.",
-    feature1Title: "Instant AI Diagnosis",
-    feature1Desc: "Scan any leaf and get 98% accurate results within seconds.",
-    feature2Title: "Treatment History",
-    feature2Desc: "Keep track of all your scans and progress in one secure place.",
-    feature3Title: "Expert Advice",
-    feature3Desc: "Get both organic and chemical treatment plans tailored for your crop.",
-    ctaTitle: "Ready to Protect Your Harvest?",
-    ctaDesc: "Join thousands of farmers using Leaf Scan to grow healthier, more productive crops.",
-    ctaBtn: "Get Started for Free",
-    myScans: "My Scans",
-    logout: "Logout",
-    login: "Log In",
-    signup: "Get Started",
-    farmMap: "Farm Map",
-    assistant: "AI Assistant"
-  },
-  hi: {
-    heroTag: "अगली पीढ़ी का फसल संरक्षण",
-    heroTitle: "सटीक AI के साथ अपनी फसलें बचाएं",
-    heroDesc: "खेती के भविष्य का अनुभव करें। हमारे अत्याधुनिक विज़न मॉडल का उपयोग करके तुरंत 38+ फसल रोगों का पता लगाएं। विशेषज्ञ उपचार योजनाएं आपकी उंगलियों पर।",
-    startBtn: "स्कैन शुरू करें",
-    createBtn: "खाता बनाएं",
-    trustedBy: "दुनिया भर के 10,000+ किसानों द्वारा भरोसा किया गया",
-    featuresTitle: "दृश्य बुद्धिमत्ता के लिए निर्मित",
-    featuresDesc: "आपकी फसलों को वह देखभाल देने के लिए डिज़ाइन की गई शक्तिशाली विशेषताएं जिनके वे हकदार हैं।",
-    feature1Title: "तत्काल AI निदान",
-    feature1Desc: "किसी भी पत्ते को स्कैन करें और सेकंड के भीतर 98% सटीक परिणाम प्राप्त करें।",
-    feature2Title: "उपचार इतिहास",
-    feature2Desc: "अपने सभी स्कैन और प्रगति को एक सुरक्षित स्थान पर ट्रैक करें।",
-    feature3Title: "विशेषज्ञ सलाह",
-    feature3Desc: "अपनी फसल के लिए तैयार जैविक और रासायनिक दोनों उपचार योजनाएं प्राप्त करें।",
-    ctaTitle: "क्या आप अपनी फसल की रक्षा के लिए तैयार हैं?",
-    ctaDesc: "स्वस्थ, अधिक उत्पादक फसलें उगाने के लिए लीफ स्कैन का उपयोग करने वाले हजारों किसानों में शामिल हों।",
-    ctaBtn: "मुफ्त में शुरू करें",
-    myScans: "मेरे स्कैन",
-    logout: "लॉगआउट",
-    login: "लॉग इन",
-    signup: "शुरू करें",
-    farmMap: "खेत का नक्शा",
-    assistant: "AI सहायक"
+    heroTitle: "We take care of your plants intelligently",
+    heroDesc: "Experience the future of farming. Detect plant diseases instantly using our state-of-the-art AI. Expert treatment plans at your fingertips.",
+    scanTitle: "Analyze Your Plant",
+    scanDesc: "Upload or click a photo of the affected leaf to get instant AI diagnosis.",
+    uploadOrDrop: "Drag & Drop or Click to Upload",
+    takePhoto: "Take Photo",
+    chooseGallery: "Choose from Gallery",
+    analyzing: "Analyzing Plant...",
+    aboutTitle: "Empowering Farmers with AI",
+    aboutDesc: "LeafScan is dedicated to bridging the gap between advanced artificial intelligence and everyday farming. Our mission is to provide accessible, highly accurate plant disease detection and sustainable treatment options. We build trust through precision and aim to help agricultural communities thrive.",
+    navHome: "Home",
+    navAbout: "About Us",
+    navSearch: "Search",
+    navHistory: "History",
+    navWeather: "Weather",
+    loginBtn: "Login / Sign In",
   }
 };
 
-const FEATURES = (t: any) => [
-  { 
-    icon: (
-      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M21 16V8C21 6.89543 20.1046 6 19 6H5C3.89543 6 3 6.89543 3 8V16C3 17.1046 3.89543 18 5 18H19C20.1046 18 21 17.1046 21 16Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M7 10L12 14L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ), 
-    title: t.feature1Title, 
-    desc: t.feature1Desc 
-  },
-  { 
-    icon: (
-      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M12 8V12L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ), 
-    title: t.feature2Title, 
-    desc: t.feature2Desc 
-  },
-  { 
-    icon: (
-      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1-1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ), 
-    title: t.feature3Title, 
-    desc: t.feature3Desc 
-  },
-];
-
 export default function HomePage() {
-  const [isAuth, setIsAuth] = useState(false);
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [lang, setLang] = useState("en");
+  const [isAuth, setIsAuth] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Scan states
+  const [image, setImage] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const savedLang = localStorage.getItem("leaf_scan_lang") || "en";
-    setLang(savedLang);
     const checkAuth = () => setIsAuth(!!localStorage.getItem("kisan_token"));
     checkAuth();
     window.addEventListener("auth-change", checkAuth);
     return () => window.removeEventListener("auth-change", checkAuth);
   }, []);
 
-  const toggleLang = () => {
-    const newLang = lang === "en" ? "hi" : "en";
-    setLang(newLang);
-    localStorage.setItem("leaf_scan_lang", newLang);
-    window.dispatchEvent(new Event("lang-change"));
-  };
-
   if (!mounted) return null;
 
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
 
-  return (
-    <main className="min-h-screen mesh-bg selection:bg-emerald-200">
-      {/* ── Navbar ────────────────────────────────────────────────── */}
-      <nav className="fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center glass border-b-0 rounded-none bg-white/40">
-        <div className="flex items-center gap-3 group cursor-pointer">
-          <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:rotate-12 transition-transform">
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 17L12 22L22 17" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 12L12 17L22 12" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <span className="font-extrabold text-xl tracking-tight text-slate-900">LEAF<span className="text-emerald-600">SCAN</span></span>
-        </div>
+  // Camera Functions
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+        setIsCameraOpen(true);
+        setPreview(null);
+      }
+    } catch (err) {
+      console.error("Camera access denied");
+    }
+  };
 
-        <div className="flex gap-4 items-center">
-          <button 
-            onClick={toggleLang}
-            className="w-10 h-10 rounded-xl glass border-emerald-100 text-emerald-700 font-black text-xs flex items-center justify-center hover:bg-emerald-50 transition-all"
-          >
-            {lang === "en" ? "HI" : "EN"}
-          </button>
-          
-          {isAuth ? (
-            <div className="flex gap-3">
-              <Link href="/farm">
-                <button className="px-5 py-2.5 rounded-xl font-bold text-sm bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all shadow-md">
-                  {t.farmMap}
-                </button>
-              </Link>
-              <Link href="/profile">
-                <button className="px-5 py-2.5 rounded-xl font-bold text-sm bg-cyan-100 text-cyan-800 hover:bg-cyan-200 transition-all shadow-md">
-                  👤 Profile
-                </button>
-              </Link>
-              <Link href="/history">
-                <button className="px-5 py-2.5 rounded-xl font-bold text-sm bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-md">
-                  {t.myScans}
-                </button>
-              </Link>
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraOpen(false);
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const file = new File([blob], `scan_${Date.now()}.jpg`, { type: "image/jpeg" });
+            setImage(file);
+            setPreview(URL.createObjectURL(file));
+            stopCamera();
+          }
+        }, "image/jpeg", 0.95);
+      }
+    }
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  };
+
+  const handleFile = (file: File) => {
+    setImage(file);
+    setPreview(URL.createObjectURL(file));
+    stopCamera();
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      handleFile(file);
+    }
+  };
+
+  const executeScan = () => {
+    if (!image) return;
+    router.push("/scan");
+  };
+
+  return (
+    <main className="min-h-screen bg-[var(--bg)] selection:bg-[var(--green-200)]">
+      {/* ── Navbar (Sticky & Glass) ───────────────────────── */}
+      <nav className="fixed top-0 w-full z-50 px-6 py-4 transition-all duration-300 glass border-b border-[var(--glass-border)]">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          {/* Logo - Left */}
+          <Link href="/" className="flex items-center gap-3 cursor-pointer group">
+            <img src="/logo(leafscan).png" alt="LeafScan Logo" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform" />
+            <span className="font-extrabold text-2xl tracking-tight text-[var(--text)]">
+              Leaf<span className="text-[var(--primary)]">Scan</span>
+            </span>
+          </Link>
+
+          {/* Links - Center */}
+          <div className="hidden md:flex gap-8 items-center font-semibold text-[var(--text-secondary)]">
+            <Link href="/" className="hover:text-[var(--primary)] transition-colors">{t.navHome}</Link>
+            <a href="#about" className="hover:text-[var(--primary)] transition-colors">{t.navAbout}</a>
+            <Link href="/search" className="hover:text-[var(--primary)] transition-colors">{t.navSearch}</Link>
+            <Link href="/history" className="hover:text-[var(--primary)] transition-colors">{t.navHistory}</Link>
+            <Link href="/weather" className="hover:text-[var(--primary)] transition-colors">{t.navWeather}</Link>
+          </div>
+
+          {/* Login - Right */}
+          <div className="flex items-center gap-3">
+            {isAuth ? (
               <button 
                 onClick={() => {
                   localStorage.removeItem("kisan_token");
-                  setIsAuth(false);
                   window.dispatchEvent(new Event("auth-change"));
                 }}
-                className="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-100 transition-all"
+                className="btn-ghost px-3 py-2 md:px-6 md:py-3 text-sm"
               >
-                {t.logout}
+                Logout
               </button>
-            </div>
-          ) : (
-            <>
-              <Link href="/login">
-                <button className="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-700 hover:text-emerald-600 transition-all">
-                  {t.login}
-                </button>
+            ) : (
+              <Link href="/login" className="btn-primary py-2 px-4 md:px-6 rounded-full text-xs md:text-sm whitespace-nowrap">
+                <span className="hidden sm:inline">{t.loginBtn}</span>
+                <span className="sm:hidden">Login</span>
               </Link>
-              <Link href="/register">
-                <button className="px-6 py-2.5 rounded-xl font-bold text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow-md">
-                  {t.signup}
-                </button>
-              </Link>
-            </>
-          )}
+            )}
+
+            {/* Hamburger Icon */}
+            <button 
+              className="md:hidden p-2 text-[var(--text)] hover:text-[var(--primary)] transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {isMobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 w-full glass-dark bg-[var(--green-950)]/90 border-t border-white/10 animate-fade-in shadow-2xl">
+            <div className="flex flex-col px-6 py-4 space-y-4 font-bold text-white/90">
+              <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--primary-light)] py-2 border-b border-white/10">{t.navHome}</Link>
+              <a href="#about" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--primary-light)] py-2 border-b border-white/10">{t.navAbout}</a>
+              <Link href="/search" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--primary-light)] py-2 border-b border-white/10">{t.navSearch}</Link>
+              <Link href="/history" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--primary-light)] py-2 border-b border-white/10">{t.navHistory}</Link>
+              <Link href="/weather" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--primary-light)] py-2">{t.navWeather}</Link>
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* ── Hero Section ──────────────────────────────────────────── */}
-      <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16">
-          <div className="flex-1 text-center lg:text-left space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 text-emerald-800 font-bold text-sm animate-fade-in-up">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              {t.heroTag}
-            </div>
-            
-            <h1 className="text-5xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
-              {t.heroTitle.split("Precision AI")[0]} <span className="text-gradient">Precision AI</span>
+      {/* ── Hero Section with Video Background and Image Collage ──────────────── */}
+      <section className="relative min-h-[100vh] flex items-center justify-center pt-32 pb-40 overflow-hidden">
+        {/* Video Background */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="/dc0a6f2b4300f5704f25c260209e6477.jpg" 
+            alt="Hero Background" 
+            className="w-full h-full object-cover scale-100"
+          />
+          <div className="hero-video-overlay" />
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-12 animate-fade-in-up w-full">
+          
+          <div className="text-left space-y-8 md:w-1/2">
+            <h1 className="text-5xl md:text-7xl font-extrabold text-white leading-tight tracking-tight drop-shadow-md">
+              We take care of your <br className="hidden md:block"/>
+              <span className="text-gradient-light">plants intelligently</span>
             </h1>
             
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+            <p className="text-lg md:text-xl text-white/90 leading-relaxed font-medium drop-shadow">
               {t.heroDesc}
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-              <Link href="/scan">
-                <button className="btn-premium group w-full sm:w-auto">
-                  {t.startBtn}
-                  <svg className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </button>
-              </Link>
-              <Link href="/farm">
-                <button className="btn-outline w-full sm:w-auto bg-white/50 backdrop-blur-sm border-emerald-500 text-emerald-700 hover:bg-emerald-50">
-                  🛰️ {t.farmMap}
-                </button>
-              </Link>
-              <Link href="/register">
-                <button className="btn-outline w-full sm:w-auto bg-white/50 backdrop-blur-sm">
-                  {t.createBtn}
-                </button>
-              </Link>
+            <div className="pt-4 flex gap-4">
+              <a href="#scan" className="btn-primary py-3 px-8 text-lg">Scan Now</a>
+              <a href="#about" className="btn-secondary py-3 px-8 text-lg">Learn More</a>
             </div>
-
-            <div className="flex items-center gap-6 justify-center lg:justify-start pt-8">
-              <div className="flex -space-x-3">
-                {[1,2,3,4].map(i => (
-                  <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-200" />
-                ))}
+          </div>
+          
+          <div className="md:w-1/2 flex justify-center">
+            {/* Image Collage */}
+            <div className="hero-collage">
+              <div className="hero-collage-img">
+                <img src="/Best%20Organic%20Fertilizers%20for%20Summer%20Growth.webp" alt="Organic Fertilizer" />
               </div>
-              <p className="text-sm font-medium text-slate-500">{t.trustedBy}</p>
+              <div className="hero-collage-img">
+                <img src="/plant-disease-2-1.jpg" alt="Plant Disease" />
+              </div>
+              <div className="hero-collage-img">
+                <img src="/images%20(3).jfif" alt="Healthy Field" />
+              </div>
             </div>
           </div>
 
-          <div className="flex-1 relative animate-float">
-            <div className="relative z-10 glass p-4 rotate-3 hover:rotate-0 transition-all duration-700">
-               <div className="rounded-2xl overflow-hidden bg-slate-100 aspect-square lg:aspect-[4/5] relative">
-                  {/* Mock Interface */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/40 to-transparent flex flex-col justify-end p-8 text-white">
-                    <div className="glass-dark p-6 space-y-3">
-                       <div className="flex justify-between items-center">
-                          <span className="font-bold">{lang === "en" ? "Tomato Blight" : "टमाटर का अगेती झुलसा"}</span>
-                          <span className="text-emerald-400 font-bold text-sm">98.2% {lang === "en" ? "Accuracy" : "सटीकता"}</span>
-                       </div>
-                       <div className="h-2 w-full bg-white/20 rounded-full overflow-hidden">
-                          <div className="h-full bg-emerald-500 w-[98%]" />
-                       </div>
-                       <p className="text-xs text-white/70">{lang === "en" ? "Diagnosis complete. View treatment plan now." : "निदान पूरा हुआ। अब उपचार योजना देखें।"}</p>
-                    </div>
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                     <svg className="w-32 h-32 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2L2 7L12 12L22 7L12 2Z" />
-                     </svg>
-                  </div>
-               </div>
-            </div>
-            {/* Background elements */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-400/20 rounded-full blur-3xl" />
-            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-lime-400/20 rounded-full blur-3xl" />
-          </div>
         </div>
       </section>
 
-      {/* ── Features Section ──────────────────────────────────────── */}
-      <section className="py-24 px-6 bg-white/50 relative border-t border-slate-200">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-4xl font-extrabold text-slate-900">{t.featuresTitle}</h2>
-            <p className="text-slate-600 max-w-xl mx-auto text-lg">{t.featuresDesc}</p>
+      {/* ── About Section ─────────────────────────────────────── */}
+      <section id="about" className="py-32 px-6 bg-[var(--bg-warm)] border-y border-[var(--earth-200)] relative overflow-hidden scroll-mt-24">
+        <div className="absolute right-0 top-0 w-[800px] h-[800px] bg-[url('/images%20(3).jfif')] bg-cover opacity-5 mix-blend-luminosity rounded-full filter blur-xl translate-x-1/2 -translate-y-1/4"></div>
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center relative z-10">
+          <div className="space-y-8 text-left">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-[var(--text)] leading-tight">
+              {t.aboutTitle.split(' ').slice(0, -1).join(' ')} <br/>
+              <span className="text-[var(--primary)]">{t.aboutTitle.split(' ').slice(-1)}</span>
+            </h2>
+            <div className="w-20 h-2 bg-[var(--primary-light)] rounded-full"></div>
+            <p className="text-lg text-[var(--text-secondary)] font-medium leading-relaxed">
+              {t.aboutDesc}
+            </p>
+            <ul className="space-y-4 pt-4">
+              {['98% Accuracy Models', 'Expert Verified Treatments', 'Community of Farmers'].map((item, i) => (
+                <li key={i} className="flex items-center gap-4 text-[var(--text)] font-bold">
+                  <span className="w-8 h-8 rounded-full bg-[var(--green-200)] text-[var(--primary-dark)] flex items-center justify-center flex-shrink-0">✓</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
-
-          <div className="grid md:grid-cols-3 gap-8 stagger-children">
-            {FEATURES(t).map((feature, i) => (
-              <div key={i} className="glass p-10 card-hover group">
-                <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-500">
-                  {feature.icon}
+          <div className="relative order-first md:order-last">
+            <div className="aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl relative max-w-md mx-auto">
+              <video 
+                src="/crop.mp4" 
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[var(--primary-dark)]/60 to-transparent flex items-end p-8">
+                <div className="glass p-6 w-full backdrop-blur-xl bg-white/20 border-white/30 rounded-2xl">
+                  <h4 className="text-white font-bold text-lg">Trusted & Reliable</h4>
+                  <p className="text-white/80 font-medium text-sm mt-1">Built with agronomists and AI experts.</p>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
-                <p className="text-slate-600 leading-relaxed">{feature.desc}</p>
               </div>
-            ))}
+            </div>
+            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-[var(--accent-warm)] rounded-full mix-blend-multiply filter blur-2xl opacity-60"></div>
           </div>
         </div>
       </section>
 
-      {/* ── CTA Section ───────────────────────────────────────────── */}
-      <section className="py-24 px-6 relative">
-        <div className="max-w-5xl mx-auto glass p-12 lg:p-20 bg-slate-900 text-white overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-600/20 rounded-full blur-3xl -mr-48 -mt-48" />
-          <div className="relative z-10 flex flex-col items-center text-center space-y-8">
-            <h2 className="text-4xl lg:text-5xl font-extrabold leading-tight">{t.ctaTitle}</h2>
-            <p className="text-slate-400 text-lg max-w-xl">{t.ctaDesc}</p>
-            <Link href="/scan">
-              <button className="btn-premium px-12 py-5 text-lg">
-                {t.ctaBtn}
-              </button>
+      {/* ── Scan Section ──────────────────────────────────────── */}
+      <section id="scan" className="py-32 px-6 relative scroll-mt-24 overflow-hidden">
+        {/* Blurred Video Background */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="/a68268f1c84cdb06d93efa985ce9566b.jpg" 
+            alt="Scan Background" 
+            className="w-full h-full object-cover scale-100"
+          />
+          <div className="scan-video-overlay" />
+        </div>
+
+        <div className="max-w-5xl mx-auto text-center space-y-12 relative z-10">
+          <div className="space-y-4">
+            <h2 className="text-4xl font-extrabold text-[var(--text)]">{t.scanTitle}</h2>
+            <p className="text-[var(--text-secondary)] font-medium text-lg max-w-2xl mx-auto">{t.scanDesc}</p>
+          </div>
+
+          <div className="glass p-8 md:p-12 rounded-[2.5rem] border-[var(--glass-border)] shadow-2xl transition-all bg-white/60 backdrop-blur-xl">
+            {isCameraOpen ? (
+               <div className="space-y-6 animate-fade-in">
+                  <div className="relative aspect-video rounded-3xl overflow-hidden bg-black shadow-xl border-4 border-white">
+                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                    <button onClick={stopCamera} className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center backdrop-blur-md">✕</button>
+                    <div className="absolute inset-0 border-[2px] border-[var(--primary-light)] border-dashed opacity-50 m-8 rounded-2xl pointer-events-none" />
+                  </div>
+                  <div className="flex justify-center">
+                    <button onClick={capturePhoto} className="w-20 h-20 bg-white border-4 border-[var(--green-100)] rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all">
+                      <div className="w-14 h-14 bg-[var(--primary)] rounded-full" />
+                    </button>
+                  </div>
+                  <canvas ref={canvasRef} className="hidden" />
+               </div>
+            ) : preview ? (
+               <div className="space-y-8 animate-fade-in">
+                 <div className="relative aspect-video rounded-3xl overflow-hidden shadow-xl border-4 border-white max-w-2xl mx-auto">
+                   <img src={preview} className="w-full h-full object-cover" alt="Preview" />
+                   <button onClick={() => setPreview(null)} className="absolute top-4 right-4 w-10 h-10 bg-white/80 text-red-600 rounded-full flex items-center justify-center font-black hover:bg-red-600 hover:text-white transition-all shadow">✕</button>
+                 </div>
+                 <button onClick={executeScan} className="btn-primary px-12 py-4 text-xl shadow-lg inline-flex items-center gap-3">
+                   {t.analyzing} <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                 </button>
+               </div>
+            ) : (
+               <div 
+                 onDragOver={handleDragOver}
+                 onDragLeave={handleDragLeave}
+                 onDrop={handleDrop}
+                 className={`border-3 border-dashed rounded-3xl p-12 transition-all duration-300 flex flex-col items-center justify-center gap-8 min-h-[350px] bg-white/50 ${isDragging ? "border-[var(--primary)] bg-[var(--green-50)] scale-[1.02]" : "border-[var(--green-200)] hover:border-[var(--primary-light)]"}`}
+               >
+                 <div className="w-24 h-24 rounded-full bg-[var(--green-100)] text-[var(--primary)] flex items-center justify-center shadow-inner animate-float-slow">
+                   <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                 </div>
+                 <div className="space-y-2">
+                   <h3 className="text-2xl font-bold text-[var(--text)]">{t.uploadOrDrop}</h3>
+                   <p className="text-[var(--text-muted)] font-medium">Supports JPG, PNG (Max 5MB)</p>
+                 </div>
+                 
+                 <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4 w-full max-w-md mx-auto">
+                    <button onClick={startCamera} className="btn-primary flex-1 py-3 flex items-center justify-center gap-2">
+                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                     {t.takePhoto}
+                   </button>
+                   <label className="btn-secondary cursor-pointer flex-1 py-3 text-center flex items-center justify-center gap-2">
+                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                     {t.chooseGallery}
+                     <input type="file" className="hidden" accept="image/*" onChange={onFileChange} />
+                   </label>
+                 </div>
+               </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ────────────────────────────────────────────── */}
+      <footer className="bg-[var(--green-950)] text-white/80 py-16 px-6 border-t-[8px] border-[var(--primary)] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--primary-dark)] rounded-full filter blur-[100px] opacity-50 translate-x-1/2 -translate-y-1/2"></div>
+        <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-12 relative z-10">
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <img src="/logo(leafscan).png" alt="Logo" className="w-10 h-10 object-contain brightness-0 invert" />
+              <span className="font-extrabold text-2xl tracking-tight text-white">LeafScan</span>
+            </div>
+            <p className="text-[var(--green-200)] max-w-sm font-medium">
+              Intelligent plant care platform powered by AI. Empowering farmers with accurate detection and sustainable treatments.
+            </p>
+          </div>
+          <div>
+            <h4 className="text-white font-bold text-lg mb-6 tracking-wide">Quick Links</h4>
+            <ul className="space-y-3 font-medium">
+              <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
+              <li><Link href="/search" className="hover:text-white transition-colors">Search Diseases</Link></li>
+              <li><Link href="/weather" className="hover:text-white transition-colors">Weather Insights</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-white font-bold text-lg mb-6 tracking-wide">Get Started</h4>
+            <Link href="/register" className="inline-block bg-[var(--primary)] text-white font-bold px-8 py-3 rounded-xl hover:bg-[var(--primary-light)] transition-colors shadow-lg">
+              Create Free Account
             </Link>
           </div>
         </div>
-      </section>
-
-      {/* ── Footer ────────────────────────────────────────────────── */}
-      <footer className="py-12 px-6 border-t border-slate-200 bg-white">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="flex items-center gap-2">
-            <span className="font-extrabold text-lg tracking-tight text-slate-900">LEAF<span className="text-emerald-600">SCAN</span></span>
-          </div>
-          <p className="text-slate-500 text-sm font-medium">© 2026 Leaf Scan AI. All rights reserved.</p>
-          <div className="flex gap-6 text-slate-400">
-             <Link href="#" className="hover:text-emerald-600 transition-colors">Twitter</Link>
-             <Link href="#" className="hover:text-emerald-600 transition-colors">Privacy</Link>
-             <Link href="#" className="hover:text-emerald-600 transition-colors">Terms</Link>
+        <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-white/10 text-center font-medium text-sm flex flex-col md:flex-row justify-between items-center gap-4">
+          <p>© {new Date().getFullYear()} LeafScan. All rights reserved.</p>
+          <div className="flex gap-6">
+            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
           </div>
         </div>
       </footer>

@@ -45,12 +45,12 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="min-h-screen mesh-bg flex items-center justify-center p-6 py-16 selection:bg-emerald-200">
+    <main className="min-h-screen mesh-bg flex items-center justify-center p-6 py-16 selection:bg-[var(--green-200)]">
       <div className="w-full max-w-lg space-y-8">
         {/* Logo */}
         <div className="text-center space-y-4">
            <Link href="/" className="inline-flex items-center gap-3 group">
-              <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-xl group-hover:rotate-12 transition-transform">
+              <div className="w-12 h-12 bg-[var(--primary)] rounded-2xl flex items-center justify-center text-white shadow-xl group-hover:rotate-12 transition-transform">
                 <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M12 2L2 7L12 12L22 7L12 2Z" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M2 17L12 22L22 17" strokeLinecap="round" strokeLinejoin="round"/>
@@ -59,8 +59,8 @@ export default function RegisterPage() {
               </div>
            </Link>
            <div className="space-y-1">
-             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Create Account</h1>
-             <p className="text-slate-500 font-bold">Join the Leaf Scan agricultural community</p>
+             <h1 className="text-3xl font-black text-[var(--text)] tracking-tight">Create Account</h1>
+             <p className="text-[var(--text-secondary)] font-bold">Join the Leaf Scan agricultural community</p>
            </div>
         </div>
 
@@ -75,50 +75,50 @@ export default function RegisterPage() {
 
           <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2 space-y-2">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+              <label className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Full Name</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-5 py-4 rounded-2xl border-2 border-slate-100 bg-white/50 focus:border-emerald-500 focus:bg-white outline-none transition-all font-bold text-slate-700"
+                className="w-full px-5 py-4 rounded-2xl border-2 border-[var(--green-100)] bg-white/50 focus:border-[var(--primary)] focus:bg-white outline-none transition-all font-bold text-[var(--text)]"
                 placeholder="Ramesh Kumar"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+              <label className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Email Address</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-5 py-4 rounded-2xl border-2 border-slate-100 bg-white/50 focus:border-emerald-500 focus:bg-white outline-none transition-all font-bold text-slate-700"
+                className="w-full px-5 py-4 rounded-2xl border-2 border-[var(--green-100)] bg-white/50 focus:border-[var(--primary)] focus:bg-white outline-none transition-all font-bold text-[var(--text)]"
                 placeholder="farmer@example.com"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
+              <label className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Phone Number</label>
               <input
                 type="tel"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full px-5 py-4 rounded-2xl border-2 border-slate-100 bg-white/50 focus:border-emerald-500 focus:bg-white outline-none transition-all font-bold text-slate-700"
+                className="w-full px-5 py-4 rounded-2xl border-2 border-[var(--green-100)] bg-white/50 focus:border-[var(--primary)] focus:bg-white outline-none transition-all font-bold text-[var(--text)]"
                 placeholder="+91 98765 43210"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
+              <label className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Password</label>
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-5 py-4 rounded-2xl border-2 border-slate-100 bg-white/50 focus:border-emerald-500 focus:bg-white outline-none transition-all font-bold text-slate-700"
+                className="w-full px-5 py-4 rounded-2xl border-2 border-[var(--green-100)] bg-white/50 focus:border-[var(--primary)] focus:bg-white outline-none transition-all font-bold text-[var(--text)]"
                 placeholder="••••••••"
                 required
                 minLength={6}
@@ -126,12 +126,12 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Language</label>
+              <label className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Language</label>
               <select
                 name="language_pref"
                 value={formData.language_pref}
                 onChange={handleChange}
-                className="w-full px-5 py-4 rounded-2xl border-2 border-slate-100 bg-white/50 focus:border-emerald-500 focus:bg-white outline-none transition-all font-bold text-slate-700 appearance-none cursor-pointer"
+                className="w-full px-5 py-4 rounded-2xl border-2 border-[var(--green-100)] bg-white/50 focus:border-[var(--primary)] focus:bg-white outline-none transition-all font-bold text-[var(--text)] appearance-none cursor-pointer"
               >
                 <option value="en">English (Global)</option>
                 <option value="hi">हिन्दी (India)</option>
@@ -142,7 +142,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-premium w-full py-5 text-lg shadow-[0_20px_40px_-15px_rgba(5,150,105,0.4)] flex items-center justify-center gap-3"
+                className="btn-premium w-full py-5 text-lg flex items-center justify-center gap-3"
               >
                 {loading ? (
                   <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
@@ -157,9 +157,9 @@ export default function RegisterPage() {
           </form>
         </div>
 
-        <p className="text-center font-bold text-slate-500 pb-10">
+        <p className="text-center font-bold text-[var(--text-secondary)] pb-10">
           Already using Leaf Scan?{" "}
-          <Link href="/login" className="text-emerald-600 hover:text-emerald-700 border-b-2 border-emerald-100 hover:border-emerald-600 transition-all">
+          <Link href="/login" className="text-[var(--primary)] hover:text-[var(--primary-dark)] border-b-2 border-[var(--green-100)] hover:border-[var(--primary)] transition-all">
             Sign in here
           </Link>
         </p>

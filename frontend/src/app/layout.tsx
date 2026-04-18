@@ -1,24 +1,38 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const outfit = Outfit({
-  subsets: ["latin"],
+const pacifico = localFont({
+  src: "../../public/Pacifico-Regular.ttf",
+  variable: "--font-pacifico",
   display: "swap",
-  variable: "--font-outfit",
+});
+
+const spaceGrotesk = localFont({
+  src: "../../public/SpaceGrotesk-VariableFont_wght.ttf",
+  variable: "--font-space-grotesk",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Leaf Scan — AI Crop Disease Detection",
+  title: "LeafScan — AI Plant Disease Detection & Treatment",
   description:
-    "Premium AI-powered crop disease detection. Scan your leaves, get instant diagnosis and expert treatment plans.",
-  keywords: ["leaf scan", "plant disease detection", "AI agriculture", "crop health", "smart farming"],
+    "Smart AI platform for plant disease detection. Scan your plants, get instant diagnosis with organic & chemical treatment suggestions. Built for farmers and plant lovers.",
+  keywords: [
+    "leafscan",
+    "plant disease detection",
+    "AI agriculture",
+    "crop health",
+    "smart farming",
+    "organic treatment",
+    "plant care",
+  ],
   manifest: "/manifest.json",
   icons: { icon: "/favicon.ico" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#059669",
+  themeColor: "#1a7a4c",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -30,17 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={outfit.variable}>
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={`${pacifico.variable} ${spaceGrotesk.variable}`}>
       <body className="antialiased overflow-x-hidden">{children}</body>
     </html>
   );
