@@ -259,8 +259,18 @@ export default function HomePage() {
       </section>
 
       {/* ── Interactive Scan CTA Section ──────────────────────── */}
-      <section id="scan" className="py-20 md:py-32 px-6 relative bg-[var(--bg)] scroll-mt-24">
-        <div className="max-w-7xl mx-auto">
+      <section id="scan" className="py-20 md:py-32 px-6 relative scroll-mt-24 overflow-hidden">
+        {/* Background Image Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="/a68268f1c84cdb06d93efa985ce9566b.jpg" 
+            alt="Scan Background" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center space-y-4 mb-12 md:mb-16">
             <h2 className="text-3xl md:text-5xl font-extrabold text-[var(--text)]">{t.scanTitle}</h2>
             <p className="text-[var(--text-secondary)] font-medium text-base md:text-lg max-w-2xl mx-auto">{t.scanDesc}</p>
