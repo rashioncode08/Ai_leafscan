@@ -180,7 +180,6 @@ export default function HistoryPage() {
             </table>
           </div>
         </div>
-        </div>
       </div>
     </main>
   );
