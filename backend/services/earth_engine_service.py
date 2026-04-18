@@ -45,15 +45,15 @@ def init_ee():
         return True
     except Exception as e:
         logger.error(f"Failed to initialize Earth Engine: {e}")
-        return False
+        raise Exception(f"Earth Engine Init Error: {str(e)}")
 
 def get_ndvi_thumbnail(polygon_coords: list) -> str:
     """
     Generate an NDVI thumbnail URL for the given polygon.
     polygon_coords should be a list of [lat, lon] pairs.
     """
-    if not init_ee():
-        raise Exception("Earth Engine not initialized")
+    # This will now throw the exact initialization error if it fails
+    init_ee()
 
     try:
         # Leaflet passes [lat, lon], but Earth Engine expects [lon, lat]
