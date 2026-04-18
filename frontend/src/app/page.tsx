@@ -144,6 +144,11 @@ export default function HomePage() {
                   {t.farmMap}
                 </button>
               </Link>
+              <Link href="/profile">
+                <button className="px-5 py-2.5 rounded-xl font-bold text-sm bg-cyan-100 text-cyan-800 hover:bg-cyan-200 transition-all shadow-md">
+                  👤 Profile
+                </button>
+              </Link>
               <Link href="/history">
                 <button className="px-5 py-2.5 rounded-xl font-bold text-sm bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-md">
                   {t.myScans}

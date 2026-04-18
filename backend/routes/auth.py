@@ -2,14 +2,16 @@
 /api/auth — Simple JWT authentication.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
+from bson import ObjectId
 from database.mongo import get_db
 from config import get_settings
+from typing import Optional
 
 settings = get_settings()
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -38,6 +40,50 @@ def create_token(user_id: str) -> str:
         settings.JWT_SECRET,
         algorithm=settings.JWT_ALGORITHM,
     )
+
+
+async def get_current_user(
+    authorization: Optional[str] = Header(None),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+) -> dict:
+    """Extract and validate the current user from JWT Bearer token."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(401, "Not authenticated")
+
+    token = authorization.split(" ", 1)[1]
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(401, "Invalid token")
+    except JWTError:
+        raise HTTPException(401, "Invalid or expired token")
+
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    return {
+        "id": str(user["_id"]),
+        "name": user.get("name"),
+        "email": user.get("email"),
+        "phone": user.get("phone"),
+        "language_pref": user.get("language_pref", "en"),
+        "created_at": user.get("created_at"),
+    }
+
+
+async def get_optional_user(
+    authorization: Optional[str] = Header(None),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+) -> Optional[dict]:
+    """Same as get_current_user but returns None instead of raising on missing token."""
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    try:
+        return await get_current_user(authorization, db)
+    except HTTPException:
+        return None
 
 
 @router.post("/register")
@@ -86,3 +132,9 @@ async def login(req: LoginRequest, db: AsyncIOMotorDatabase = Depends(get_db)):
         "user": {"id": str(user["_id"]), "name": user.get("name"), "email": user.get("email")},
         "token": create_token(str(user["_id"])),
     }
+
+
+@router.get("/me")
+async def get_me(current_user: dict = Depends(get_current_user)):
+    """Return the current user's profile information."""
+    return current_user
