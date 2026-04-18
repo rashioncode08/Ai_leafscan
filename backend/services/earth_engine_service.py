@@ -15,18 +15,30 @@ def init_ee():
 
     key_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "gee_key.json")
     
-    if not os.path.exists(key_path):
-        logger.error(f"GEE key file not found at {key_path}")
-        return False
-
     try:
-        # Earth Engine expects the service account email, but we can also just pass the JSON file path 
-        # using the Credentials object
         from google.oauth2.service_account import Credentials
-        credentials = Credentials.from_service_account_file(
-            key_path, scopes=["https://www.googleapis.com/auth/earthengine"]
-        )
-        # Using the project ID from the JSON
+        import json
+
+        # 1. Try from Environment Variable (easier for Render)
+        env_key = os.environ.get("GEE_KEY_JSON")
+        if env_key:
+            key_dict = json.loads(env_key)
+            credentials = Credentials.from_service_account_info(
+                key_dict, scopes=["https://www.googleapis.com/auth/earthengine"]
+            )
+            logger.info("Using GEE credentials from Environment Variable")
+        # 2. Fallback to file
+        else:
+            if not os.path.exists(key_path):
+                logger.error(f"GEE key file not found at {key_path} and GEE_KEY_JSON env var is missing.")
+                return False
+                
+            credentials = Credentials.from_service_account_file(
+                key_path, scopes=["https://www.googleapis.com/auth/earthengine"]
+            )
+            logger.info("Using GEE credentials from file")
+
+        # Initialize
         ee.Initialize(credentials, project="intricate-muse-493714-c8")
         _INITIALIZED = True
         logger.info("Successfully initialized Google Earth Engine")
