@@ -135,13 +135,13 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Nav */}
         <div className="flex items-center justify-between mb-4">
-           <Link href="/history" className="group flex items-center gap-2 text-slate-600 hover:text-emerald-600 transition-all font-bold">
+           <Link href="/history" className="group flex items-center gap-2 text-slate-800 hover:text-emerald-600 transition-all font-bold">
               <span className="w-8 h-8 rounded-lg glass flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all">←</span>
               {t.history}
            </Link>
            <button 
              onClick={() => window.print()}
-             className="glass px-4 py-2 text-sm font-bold text-slate-600 hover:bg-white transition-all flex items-center gap-2"
+             className="glass px-4 py-2 text-sm font-bold text-slate-800 hover:bg-white transition-all flex items-center gap-2"
            >
              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2-2" /></svg>
              {t.export}
@@ -167,14 +167,14 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
 
               <div className="grid grid-cols-2 gap-4">
                  <div className="glass p-5 space-y-2 bg-white/60">
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-wider">{t.confidence}</p>
+                    <p className="text-xs font-black text-slate-900 uppercase tracking-wider">{t.confidence}</p>
                     <p className="text-3xl font-black text-emerald-600">{confidence.toFixed(1)}%</p>
                     <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
                        <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${confidence}%` }} />
                     </div>
                  </div>
                  <div className="glass p-5 space-y-2 bg-white/60">
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-wider">{t.severity}</p>
+                    <p className="text-xs font-black text-slate-900 uppercase tracking-wider">{t.severity}</p>
                     <p className="text-3xl font-black text-red-500">{severity}</p>
                     <div className="flex gap-1">
                        {[1,2,3].map(i => (
@@ -248,7 +248,7 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
                     <div className="w-12 h-12 bg-lime-100 text-lime-700 rounded-2xl flex items-center justify-center text-2xl">🍃</div>
                     <h3 className="text-2xl font-black text-slate-900">{t.organic}</h3>
                  </div>
-                 <div className="prose prose-slate max-w-none text-slate-600 font-medium leading-relaxed">
+                 <div className="prose prose-slate max-w-none text-slate-900 font-medium leading-relaxed">
                     {visionAnalysis ? "Apply sulfur-based fungicides or copper sprays early in the season. Prune affected branches and destroy fallen leaves." : (data.recommendation?.treatment_data?.organic || (lang === 'hi' ? 'मानक जैविक कवकनाशी (नीम का तेल) लगाने की सिफारिश की जाती है। खेत की स्वच्छता बनाए रखें।' : "Standard organic fungicide (Neem Oil) application recommended. Maintain field sanitation."))}
                  </div>
                  <div className="pt-4 border-t border-slate-100 flex items-center gap-2 text-lime-700 font-black text-sm">
@@ -263,7 +263,7 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
                     <div className="w-12 h-12 bg-red-100 text-red-700 rounded-2xl flex items-center justify-center text-2xl">🧪</div>
                     <h3 className="text-2xl font-black text-slate-900">{t.chemical}</h3>
                  </div>
-                 <div className="prose prose-slate max-w-none text-slate-600 font-medium leading-relaxed">
+                 <div className="prose prose-slate max-w-none text-slate-900 font-medium leading-relaxed">
                     {visionAnalysis ? "Use fungicides containing chlorothalonil, mancozeb, or myclobutanil. Follow label instructions strictly for Euonymus species." : (data.recommendation?.treatment_data?.chemical || (lang === 'hi' ? 'स्थानीय प्रतिरोध के आधार पर विशिष्ट रासायनिक स्प्रे शेड्यूल के लिए स्थानीय कृषि विस्तार से परामर्श लें।' : "Consult local agricultural extension for specific chemical spray schedules based on local resistance.")) }
                  </div>
                  <div className="pt-4 border-t border-slate-100 flex items-center gap-2 text-red-700 font-black text-sm">
