@@ -83,7 +83,7 @@ export default function MapComponent({ onPolygonDrawn, ndviPolygon, ndviUrl }: M
 
   return (
     <div className="relative h-full w-full rounded-3xl overflow-hidden shadow-2xl border-4 border-emerald-500">
-      <div className="absolute top-4 right-4 z-[400] flex gap-2">
+      <div className="absolute top-4 right-4 flex gap-2" style={{ zIndex: 10000 }}>
         <button 
           onClick={() => setSatellite(!satellite)}
           className="bg-white px-4 py-2 rounded-xl font-bold text-sm shadow-md text-emerald-800 hover:bg-emerald-50"
