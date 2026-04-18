@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { getDetection, detectVision } from "@/lib/api";
+import { getDetection, reanalyzeDetection } from "@/lib/api";
 import Link from "next/link";
 
 const UI_STRINGS: Record<string, any> = {
@@ -24,7 +24,9 @@ const UI_STRINGS: Record<string, any> = {
     efficacy: "FAST ACTING / HIGH EFFICACY",
     visionBtn: "Advanced AI Check",
     visionTitle: "Advanced Vision Insight",
-    visionDesc: "Our deep neural model is confident, but you can request an expert visual analysis for rare conditions."
+    visionDesc: "Request a second opinion from our Gemini Vision AI for a deeper analysis of this leaf image.",
+    visionError: "Vision AI is unavailable. Please check your API keys on the backend.",
+    correctionApplied: "Expert Analysis Complete",
   },
   hi: {
     history: "इतिहास",
@@ -45,7 +47,9 @@ const UI_STRINGS: Record<string, any> = {
     efficacy: "तेजी से काम करने वाला / उच्च प्रभावशीलता",
     visionBtn: "उन्नत AI जाँच",
     visionTitle: "उन्नत विज़न अंतर्दृष्टि",
-    visionDesc: "हमारा मॉडल आश्वस्त है, लेकिन आप दुर्लभ स्थितियों के लिए विशेषज्ञ विजुअल विश्लेषण का अनुरोध कर सकते हैं।"
+    visionDesc: "इस पत्ती छवि के गहन विश्लेषण के लिए हमारे Gemini Vision AI से दूसरी राय का अनुरोध करें।",
+    visionError: "Vision AI उपलब्ध नहीं है। कृपया बैकएंड पर अपनी API कुंजियाँ जांचें।",
+    correctionApplied: "विशेषज्ञ विश्लेषण पूरा हुआ",
   }
 };
 
@@ -56,7 +60,9 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
   const [speaking, setSpeaking] = useState(false);
   const [lang, setLang] = useState("en");
   const [visionAnalysis, setVisionAnalysis] = useState<string | null>(null);
+  const [visionSource, setVisionSource] = useState<string>("");
   const [visionLoading, setVisionLoading] = useState(false);
+  const [visionError, setVisionError] = useState("");
 
   useEffect(() => {
     const savedLang = localStorage.getItem("leaf_scan_lang") || "en";
@@ -82,32 +88,14 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
 
   const handleVisionCheck = async () => {
     setVisionLoading(true);
+    setVisionError("");
     try {
-      // In a real app, we'd fetch the original image file from the server
-      // For this demo, we'll simulate an advanced analysis that "corrects" known misclassifications
-      // If it's the specific image the user mentioned:
-      if (data.image_filename?.toLowerCase().includes("marssonia")) {
-         setTimeout(() => {
-            setVisionAnalysis("Detected: Marssonia Leaf Spot on Euonymus. Confidence: High. Description: Characterized by circular brown spots with yellow halos. Not Apple Scab.");
-            setVisionLoading(false);
-         }, 2000);
-         return;
-      }
-
-      if (data.image_filename?.toLowerCase().includes("cercospora") || data.image_filename?.toLowerCase().includes("soybean")) {
-         setTimeout(() => {
-            setVisionAnalysis("Detected: Cercospora Leaf Blight on Soybean. Confidence: High. Description: Characterized by purple/brown lesions and leathery leaf texture. Re-evaluating previous Apple Black Rot detection.");
-            setVisionLoading(false);
-         }, 2000);
-         return;
-      }
-
-      // Fallback to real API if available (simulated)
-      setTimeout(() => {
-         setVisionAnalysis("Analysis confirmed. The current diagnosis is highly probable based on visual patterns.");
-         setVisionLoading(false);
-      }, 1500);
-    } catch (err) {
+      const result = await reanalyzeDetection(id);
+      setVisionAnalysis(result.analysis);
+      setVisionSource(result.source);
+    } catch (err: any) {
+      setVisionError(err.message || "Re-analysis failed");
+    } finally {
       setVisionLoading(false);
     }
   };
@@ -133,29 +121,15 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
   );
 
   const t = UI_STRINGS[lang] || UI_STRINGS.en;
-  
-  // Determine displayed disease based on vision analysis override
-  let displayDisease = String(data.disease_name || "Unknown").replace(/___/g, " — ").replace(/_/g, " ");
-  let displayCrop = data.crop_type || "Crop";
-  
-  if (visionAnalysis) {
-      if (visionAnalysis.includes("Marssonia")) {
-          displayDisease = "Marssonia — Leaf Spot";
-          displayCrop = "Euonymus";
-      } else if (visionAnalysis.includes("Cercospora")) {
-          displayDisease = "Cercospora — Leaf Blight";
-          displayCrop = "Soybean";
-      }
-  }
-
+  const disease = String(data.disease_name || "Unknown").replace(/___/g, " — ").replace(/_/g, " ");
   const isHealthy = String(data.disease_name).toLowerCase().includes("healthy");
-  const confidence = visionAnalysis ? 95.8 : (data.confidence || 0);
-  const severity = visionAnalysis ? "HIGH" : (data.severity || "LOW");
+  const confidence = data.confidence || 0;
+  const severity = data.severity || "LOW";
 
-  // Get image URL
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-  const imageUrl = data.image_filename ? `${API_BASE}/api/history/${data.id}/image` : "https://images.unsplash.com/photo-1597113366853-9a93ad3f5d05?q=80&w=2000";
-
+  const imageUrl = data.image_filename
+    ? `${API_BASE}/api/history/${data.id}/image`
+    : "https://images.unsplash.com/photo-1597113366853-9a93ad3f5d05?q=80&w=2000";
 
   return (
     <main className="min-h-screen mesh-bg py-12 px-6">
@@ -188,8 +162,8 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
 
            <div className="flex flex-col justify-center space-y-6">
               <div className="space-y-1">
-                 <p className="text-emerald-600 font-black tracking-widest text-sm uppercase">{displayCrop} Analysis</p>
-                 <h1 className="text-4xl lg:text-5xl font-black text-slate-900 leading-tight">{displayDisease}</h1>
+                 <p className="text-emerald-600 font-black tracking-widest text-sm uppercase">{data.crop_type || "Crop"} Analysis</p>
+                 <h1 className="text-4xl lg:text-5xl font-black text-slate-900 leading-tight">{disease}</h1>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -213,7 +187,7 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
 
               {data.recommendation?.text && (
                  <button 
-                   onClick={() => speakText(visionAnalysis || data.recommendation.text)}
+                   onClick={() => speakText(data.recommendation.text)}
                    className={`flex items-center gap-3 font-bold px-6 py-4 rounded-2xl transition-all ${speaking ? 'bg-emerald-600 text-white shadow-lg animate-pulse' : 'bg-white text-emerald-600 border-2 border-emerald-100 hover:border-emerald-500 shadow-md'}`}
                  >
                    {speaking ? (
@@ -227,7 +201,7 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
            </div>
         </div>
 
-        {/* Vision Correction Area */}
+        {/* Vision Re-Analysis Section */}
         {!visionAnalysis && (
           <div className="glass p-8 bg-slate-900 text-white space-y-4 border-2 border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
@@ -244,6 +218,11 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
                 {t.visionBtn}
               </button>
             </div>
+            {visionError && (
+              <div className="mt-4 p-4 bg-red-500/20 border border-red-400/50 rounded-xl text-red-200 text-sm font-bold">
+                ⚠️ {visionError}
+              </div>
+            )}
           </div>
         )}
 
@@ -251,12 +230,11 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
           <div className="glass p-8 bg-emerald-600 text-white space-y-4 animate-fade-in">
              <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl">✨</div>
-                <h3 className="text-xl font-black">Expert Correction Applied</h3>
+                <h3 className="text-xl font-black">{t.correctionApplied}</h3>
              </div>
-             <p className="text-emerald-50 text-lg leading-relaxed">{visionAnalysis}</p>
+             <p className="text-emerald-50 text-lg leading-relaxed whitespace-pre-wrap">{visionAnalysis}</p>
              <div className="flex gap-4">
-                <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest">Source: Gemini Vision AI</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest">Confidence: 95%</span>
+                <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest">Source: {visionSource.replace("_", " ")}</span>
              </div>
           </div>
         )}
@@ -276,11 +254,7 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
                     <h3 className="text-2xl font-black text-slate-900">{t.organic}</h3>
                  </div>
                  <div className="prose prose-slate max-w-none text-slate-900 font-medium leading-relaxed">
-                    {visionAnalysis ? 
-                      (visionAnalysis.includes("Cercospora") 
-                        ? "Apply fungicides with active ingredients like thiophanate-methyl or azoxystrobin. Ensure complete canopy coverage during spraying."
-                        : "Apply sulfur-based fungicides or copper sprays early in the season. Prune affected branches and destroy fallen leaves.") 
-                      : (data.recommendation?.treatment_data?.organic || (lang === 'hi' ? 'मानक जैविक कवकनाशी (नीम का तेल) लगाने की सिफारिश की जाती है। खेत की स्वच्छता बनाए रखें।' : "Standard organic fungicide (Neem Oil) application recommended. Maintain field sanitation."))}
+                    {data.recommendation?.treatment_data?.organic || (lang === 'hi' ? 'मानक जैविक कवकनाशी (नीम का तेल) लगाने की सिफारिश की जाती है। खेत की स्वच्छता बनाए रखें।' : "Standard organic fungicide (Neem Oil) application recommended. Maintain field sanitation.")}
                  </div>
                  <div className="pt-4 border-t border-slate-100 flex items-center gap-2 text-lime-700 font-black text-sm">
                     <span className="w-2 h-2 rounded-full bg-lime-500 animate-pulse" />
@@ -295,11 +269,7 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
                     <h3 className="text-2xl font-black text-slate-900">{t.chemical}</h3>
                  </div>
                  <div className="prose prose-slate max-w-none text-slate-900 font-medium leading-relaxed">
-                    {visionAnalysis ? 
-                      (visionAnalysis.includes("Cercospora")
-                        ? "Use registered fungicides containing flutriafol or propiconazole. Spray at R3 to R5 growth stages for maximum efficacy."
-                        : "Use fungicides containing chlorothalonil, mancozeb, or myclobutanil. Follow label instructions strictly for Euonymus species.") 
-                      : (data.recommendation?.treatment_data?.chemical || (lang === 'hi' ? 'स्थानीय प्रतिरोध के आधार पर विशिष्ट रासायनिक स्प्रे शेड्यूल के लिए स्थानीय कृषि विस्तार से परामर्श लें।' : "Consult local agricultural extension for specific chemical spray schedules based on local resistance.")) }
+                    {data.recommendation?.treatment_data?.chemical || (lang === 'hi' ? 'स्थानीय प्रतिरोध के आधार पर विशिष्ट रासायनिक स्प्रे शेड्यूल के लिए स्थानीय कृषि विस्तार से परामर्श लें।' : "Consult local agricultural extension for specific chemical spray schedules based on local resistance.")}
                  </div>
                  <div className="pt-4 border-t border-slate-100 flex items-center gap-2 text-red-700 font-black text-sm">
                     <span className="w-2 h-2 rounded-full bg-red-500" />
@@ -309,17 +279,17 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
            </div>
 
            {/* AI Full Description */}
-           {(data.recommendation?.text || visionAnalysis) && (
+           {data.recommendation?.text && (
              <div className="glass p-10 space-y-4 bg-slate-900 text-white shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-600/10 rounded-full blur-3xl -mr-32 -mt-32" />
                 <h3 className="text-xl font-black flex items-center gap-3">
                    <span className="text-emerald-400">AI</span> {t.advisory}
                 </h3>
                 <p className="text-slate-300 leading-relaxed text-lg italic">
-                  "{visionAnalysis || data.recommendation.text}"
+                  "{data.recommendation.text}"
                 </p>
                 <div className="flex items-center gap-2 text-xs font-black text-slate-500 tracking-widest uppercase">
-                   Source: <span className="text-emerald-500">{visionAnalysis ? "Gemini Vision" : data.recommendation.source?.toUpperCase()}</span> • Verified by Leaf Scan AI
+                   Source: <span className="text-emerald-500">{data.recommendation.source?.toUpperCase()}</span> • Verified by Leaf Scan AI
                 </div>
              </div>
            )}
@@ -331,11 +301,7 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
            <div className="space-y-2">
               <h3 className="text-xl font-black text-emerald-900">{t.prevention}</h3>
               <p className="text-emerald-800/80 font-medium leading-relaxed">
-                 {visionAnalysis ? 
-                    (visionAnalysis.includes("Cercospora")
-                      ? "Implement crop rotation, plant disease-free seeds, and bury crop residues after harvest to reduce pathogen survival."
-                      : "Ensure proper plant spacing for air circulation. Avoid overhead watering. Clean up and destroy all fallen leaves in autumn.") 
-                    : (data.recommendation?.treatment_data?.prevention || (lang === 'hi' ? 'फसल रोटेशन लागू करें, हवा के प्रवाह के लिए उचित दूरी सुनिश्चित करें, और पत्तियों पर नमी को कम करने के लिए ओवरहेड सिंचाई से बचें।' : "Implement crop rotation, ensure proper spacing for airflow, and avoid overhead irrigation to minimize moisture on leaves."))}
+                 {data.recommendation?.treatment_data?.prevention || (lang === 'hi' ? 'फसल रोटेशन लागू करें, हवा के प्रवाह के लिए उचित दूरी सुनिश्चित करें, और पत्तियों पर नमी को कम करने के लिए ओवरहेड सिंचाई से बचें।' : "Implement crop rotation, ensure proper spacing for airflow, and avoid overhead irrigation to minimize moisture on leaves.")}
               </p>
            </div>
         </div>

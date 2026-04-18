@@ -192,3 +192,19 @@ export async function detectVision(file: File, cropType: string = "") {
   if (!res.ok) throw new Error("Vision analysis failed");
   return res.json();
 }
+
+/**
+ * Re-analyze a stored detection using Vision AI (Gemini/Grok).
+ */
+export async function reanalyzeDetection(detectionId: string): Promise<{ analysis: string; source: string }> {
+  const res = await fetch(`${API_BASE}/api/history/${detectionId}/reanalyze`, {
+    method: "POST",
+    headers: { ...getAuthHeaders() },
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Re-analysis failed" }));
+    throw new Error(err.detail || "Re-analysis failed");
+  }
+  return res.json();
+}

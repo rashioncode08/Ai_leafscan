@@ -97,6 +97,46 @@ async def get_detection_image(detection_id: str, db: AsyncIOMotorDatabase = Depe
     return Response(content=detection["image_data"], media_type=content_type)
 
 
+@router.post("/history/{detection_id}/reanalyze")
+async def reanalyze_detection(detection_id: str, db: AsyncIOMotorDatabase = Depends(get_db)):
+    """Re-analyze a stored detection image using Gemini/Grok Vision API."""
+    try:
+        obj_id = ObjectId(detection_id)
+    except Exception:
+        raise HTTPException(400, "Invalid detection ID format")
+
+    detection = await db.detections.find_one({"_id": obj_id}, {"image_data": 1, "crop_type": 1})
+
+    if not detection or "image_data" not in detection:
+        raise HTTPException(404, "Image not found for re-analysis")
+
+    image_bytes = detection["image_data"]
+    crop_hint = detection.get("crop_type", "")
+
+    # Try Gemini Vision first, then Grok Vision
+    analysis = ""
+    source = ""
+    try:
+        from services import gemini_service
+        analysis = await gemini_service.analyze_image_with_gemini(image_bytes, crop_hint)
+        source = "gemini_vision"
+    except Exception:
+        try:
+            from services import grok_service
+            analysis = await grok_service.analyze_image_with_grok(image_bytes, crop_hint)
+            source = "grok_vision"
+        except Exception as e:
+            raise HTTPException(503, f"No vision API available: {e}")
+
+    if not analysis:
+        raise HTTPException(503, "Vision API returned empty analysis")
+
+    return {
+        "analysis": analysis,
+        "source": source,
+    }
+
+
 @router.delete("/history/{detection_id}")
 async def delete_detection(detection_id: str, db: AsyncIOMotorDatabase = Depends(get_db)):
     """Delete a detection record."""
