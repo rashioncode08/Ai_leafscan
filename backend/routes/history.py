@@ -3,6 +3,7 @@
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from bson import ObjectId
 from database.mongo import get_db
@@ -71,6 +72,29 @@ async def get_detection(detection_id: str, db: AsyncIOMotorDatabase = Depends(ge
             "source": rec.get("source"),
         } if rec else None,
     }
+
+
+@router.get("/history/{detection_id}/image")
+async def get_detection_image(detection_id: str, db: AsyncIOMotorDatabase = Depends(get_db)):
+    """Serve the binary image data for a detection."""
+    try:
+        obj_id = ObjectId(detection_id)
+    except Exception:
+        raise HTTPException(400, "Invalid detection ID format")
+
+    detection = await db.detections.find_one({"_id": obj_id}, {"image_data": 1, "image_filename": 1})
+
+    if not detection or "image_data" not in detection:
+        raise HTTPException(404, "Image not found")
+
+    content_type = "image/jpeg"
+    filename = detection.get("image_filename", "").lower()
+    if filename.endswith(".png"):
+        content_type = "image/png"
+    elif filename.endswith(".webp"):
+        content_type = "image/webp"
+
+    return Response(content=detection["image_data"], media_type=content_type)
 
 
 @router.delete("/history/{detection_id}")
