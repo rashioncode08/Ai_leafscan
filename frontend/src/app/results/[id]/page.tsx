@@ -371,7 +371,7 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
               </p>
            </div>
         </div>
-
+        <div className="flex justify-center pt-8">
            <Link href="/scan">
               <button className="btn-premium px-12 py-5 text-xl">{t.another}</button>
            </Link>
