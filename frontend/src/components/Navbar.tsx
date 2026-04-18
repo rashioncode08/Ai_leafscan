@@ -18,9 +18,7 @@ export default function Navbar() {
       <div className="max-w-6xl w-full mx-auto flex justify-between items-center bg-white/75 dark:bg-slate-900/70 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.1)] rounded-full px-6 py-3">
         {/* Logo - Left */}
         <Link href="/" className="flex items-center gap-3 cursor-pointer group">
-          <div className="bg-gradient-to-tr from-[var(--primary)] to-[var(--primary-light)] p-2.5 rounded-full shadow-lg group-hover:scale-110 group-hover:rotate-[15deg] transition-all duration-300">
-            <img src="/logo(leafscan).png" alt="LeafScan Logo" className="w-5 h-5 object-contain brightness-0 invert" />
-          </div>
+          <img src="/logo(leafscan).png" alt="LeafScan Logo" className="w-10 h-10 object-contain group-hover:scale-110 group-hover:rotate-[15deg] transition-all duration-300" />
           <span className="font-extrabold text-2xl tracking-tight text-[var(--text)] font-[family-name:var(--font-outfit)]">
             Leaf<span className="text-[var(--primary)]">Scan</span>
           </span>
