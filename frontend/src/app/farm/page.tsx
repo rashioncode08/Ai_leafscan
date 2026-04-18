@@ -10,22 +10,41 @@ const MapComponent = dynamic(() => import("./MapComponent"), { ssr: false });
 export default function FarmMapPage() {
   const [polygon, setPolygon] = useState<number[][] | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
-  const [ndviResult, setNdviResult] = useState<boolean>(false);
+  const [ndviUrl, setNdviUrl] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   const handlePolygonDrawn = (coords: number[][]) => {
     setPolygon(coords);
-    setNdviResult(false);
+    setNdviUrl(null);
+    setError("");
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!polygon) return;
     setAnalyzing(true);
+    setError("");
     
-    // Simulate satellite data fetching
-    setTimeout(() => {
+    try {
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${API_BASE}/api/farm/ndvi`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coordinates: polygon })
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || "Failed to generate NDVI");
+      }
+
+      const data = await res.json();
+      setNdviUrl(data.url);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "An error occurred fetching satellite data");
+    } finally {
       setAnalyzing(false);
-      setNdviResult(true);
-    }, 2500);
+    }
   };
 
   return (
@@ -47,7 +66,7 @@ export default function FarmMapPage() {
           
           {/* Map Container */}
           <div className="lg:col-span-2 h-[600px]">
-             <MapComponent onPolygonDrawn={handlePolygonDrawn} ndviPolygon={ndviResult ? polygon : null} />
+             <MapComponent onPolygonDrawn={handlePolygonDrawn} ndviPolygon={polygon} ndviUrl={ndviUrl} />
           </div>
 
           {/* Sidebar */}
@@ -77,7 +96,13 @@ export default function FarmMapPage() {
                 Fetch Sentinel-2 satellite data to calculate the Normalized Difference Vegetation Index (NDVI) and spot crop stress from space.
               </p>
 
-              {!ndviResult ? (
+              {error && (
+                <div className="p-4 bg-red-50 text-red-600 rounded-xl font-bold text-sm border border-red-200">
+                  ⚠️ {error}
+                </div>
+              )}
+
+              {!ndviUrl ? (
                 <button 
                   onClick={handleAnalyze}
                   disabled={analyzing}
@@ -108,10 +133,10 @@ export default function FarmMapPage() {
                      </div>
                   </div>
                   <p className="text-sm italic text-slate-400">
-                    * The map now shows a simulated NDVI gradient highlighting potential disease hotspots in red.
+                    * The map now displays actual Sentinel-2 satellite data over your field.
                   </p>
                   <button 
-                    onClick={() => { setNdviResult(false); setPolygon(null); }}
+                    onClick={() => { setNdviUrl(null); setPolygon(null); }}
                     className="w-full py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition-all border border-white/10"
                   >
                     Clear Map

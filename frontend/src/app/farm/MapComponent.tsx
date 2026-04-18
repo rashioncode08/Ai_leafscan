@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { MapContainer, TileLayer, FeatureGroup, useMap, Polygon } from "react-leaflet";
+import { MapContainer, TileLayer, FeatureGroup, useMap, Polygon, ImageOverlay } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import "@geoman-io/leaflet-geoman-free";
@@ -18,6 +18,7 @@ L.Icon.Default.mergeOptions({
 interface MapProps {
   onPolygonDrawn: (coordinates: number[][]) => void;
   ndviPolygon?: number[][] | null;
+  ndviUrl?: string | null;
 }
 
 const GeomanControls = ({ onPolygonDrawn }: { onPolygonDrawn: (coordinates: number[][]) => void }) => {
@@ -68,7 +69,7 @@ const FlyToLocation = ({ position }: { position: [number, number] | null }) => {
   return null;
 };
 
-export default function MapComponent({ onPolygonDrawn, ndviPolygon }: MapProps) {
+export default function MapComponent({ onPolygonDrawn, ndviPolygon, ndviUrl }: MapProps) {
   const [position, setPosition] = useState<[number, number]>([20.5937, 78.9629]); // India center
   const [satellite, setSatellite] = useState(true);
 
@@ -127,30 +128,24 @@ export default function MapComponent({ onPolygonDrawn, ndviPolygon }: MapProps) 
           <GeomanControls onPolygonDrawn={onPolygonDrawn} />
         </FeatureGroup>
 
-        {/* Simulated NDVI Layer over the drawn polygon */}
-        {ndviPolygon && (
+        {/* Real GEE NDVI Layer */}
+        {ndviUrl && ndviPolygon && (
+          <ImageOverlay
+            url={ndviUrl}
+            bounds={L.polygon(ndviPolygon as [number, number][]).getBounds()}
+            opacity={0.8}
+            zIndex={10}
+          />
+        )}
+        
+        {/* Outline of the drawn polygon */}
+        {ndviUrl && ndviPolygon && (
           <Polygon 
-            positions={ndviPolygon} 
-            pathOptions={{ 
-              color: '#ef4444', 
-              fillColor: 'url(#ndvi-gradient)', 
-              fillOpacity: 0.7,
-              weight: 3
-            }} 
+            positions={ndviPolygon as [number, number][]} 
+            pathOptions={{ color: '#ffffff', weight: 2, fill: false }} 
           />
         )}
       </MapContainer>
-
-      {/* SVG Gradient for fake NDVI visualization */}
-      <svg width="0" height="0">
-        <defs>
-          <radialGradient id="ndvi-gradient" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#22c55e" stopOpacity="0.8" /> {/* Healthy center */}
-            <stop offset="60%" stopColor="#eab308" stopOpacity="0.8" /> {/* Stressed middle */}
-            <stop offset="100%" stopColor="#ef4444" stopOpacity="0.8" /> {/* Diseased edges */}
-          </radialGradient>
-        </defs>
-      </svg>
     </div>
   );
 }
